@@ -1,0 +1,428 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Retro Game Design System */
+
+@layer base {
+  :root {
+    --background: 26 26 46;
+    --foreground: 255 255 255;
+
+    --card: 15 52 96;
+    --card-foreground: 255 255 255;
+
+    --popover: 15 52 96;
+    --popover-foreground: 255 255 255;
+
+    --primary: 0 212 255;
+    --primary-foreground: 26 26 46;
+
+    --secondary: 22 33 62;
+    --secondary-foreground: 255 255 255;
+
+    --muted: 22 33 62;
+    --muted-foreground: 200 200 255;
+
+    --accent: 0 255 136;
+    --accent-foreground: 26 26 46;
+
+    --destructive: 255 0 68;
+    --destructive-foreground: 255 255 255;
+
+    --border: 22 33 62;
+    --input: 22 33 62;
+    --ring: 0 212 255;
+
+    --radius: 0px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-retro-dark text-foreground font-pixel overflow-hidden;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  /* Disable text selection for game-like feel */
+  * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Custom scrollbar for retro feel */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Retro button styles */
+  .retro-button {
+    @apply relative px-6 py-3 bg-retro-purple border-2 border-retro-cyan text-retro-cyan font-pixel text-sm;
+    @apply hover:bg-retro-cyan hover:text-retro-dark active:scale-95;
+    @apply transition-all duration-100 cursor-pointer;
+    box-shadow: 
+      inset 0 0 0 1px rgba(0, 212, 255, 0.3),
+      0 0 10px rgba(0, 212, 255, 0.5);
+  }
+
+  .retro-button:hover {
+    box-shadow: 
+      inset 0 0 0 1px rgba(0, 212, 255, 0.8),
+      0 0 20px rgba(0, 212, 255, 0.8);
+  }
+
+  /* Pixel art styling */
+  .pixel-art {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  /* CRT scan lines effect */
+  .crt-effect {
+    position: relative;
+  }
+
+  .crt-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      transparent 50%,
+      rgba(0, 255, 136, 0.03) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Retro text glow */
+  .text-glow {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor;
+  }
+
+  /* Game screen border */
+  .game-screen {
+    @apply border-4 border-retro-cyan bg-retro-dark relative;
+    box-shadow: 
+      inset 0 0 0 2px rgba(0, 212, 255, 0.3),
+      0 0 30px rgba(0, 212, 255, 0.5);
+  }
+
+  /* Battle intensity background */
+  .battle-intensity-low {
+    background: linear-gradient(45deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+  }
+
+  .battle-intensity-medium {
+    background: linear-gradient(45deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
+    animation: ambient-pulse 2s ease-in-out infinite;
+  }
+
+  .battle-intensity-high {
+    background: linear-gradient(45deg, #0f3460 0%, #1a1a2e 50%, #0f3460 100%);
+    animation: battle-pulse 1s ease-in-out infinite;
+  }
+
+  /* Victory celebration effects */
+  .victory-celebration {
+    animation: victory-flash 0.5s ease-in-out 3;
+  }
+
+  .victory-screen-shake {
+    animation: screen-shake 0.5s ease-in-out;
+  }
+
+  /* Superpower visual effects */
+  .superpower-tank {
+    border-width: 3px !important;
+    border-color: #ff8800 !important;
+    box-shadow: 
+      0 0 8px rgba(255, 136, 0, 0.8),
+      inset 0 0 4px rgba(255, 136, 0, 0.3) !important;
+    animation: tank-fortify 2s ease-in-out infinite;
+  }
+
+  .superpower-spreader {
+    animation: spreader-pulse 1.5s ease-in-out infinite;
+    border-color: #ffff00 !important;
+    box-shadow: 0 0 6px rgba(255, 255, 0, 0.8) !important;
+  }
+
+  .superpower-survivor {
+    border: 2px solid #ff0044 !important;
+    background: radial-gradient(circle, currentColor 40%, #ff0044 100%) !important;
+    box-shadow: 0 0 4px rgba(255, 0, 68, 0.6) !important;
+    animation: survivor-glow 2.5s ease-in-out infinite;
+  }
+
+  .superpower-ghost {
+    opacity: 0.75 !important;
+    animation: ghost-shimmer 2s ease-in-out infinite;
+    border-color: #ff44aa !important;
+  }
+
+  .superpower-replicator {
+    animation: replicator-spin 0.8s ease-in-out infinite;
+    border-color: #8844ff !important;
+    box-shadow: 0 0 8px rgba(136, 68, 255, 0.8) !important;
+  }
+
+  .superpower-destroyer {
+    border-width: 2px !important;
+    border-style: dashed !important;
+    border-color: #ff0044 !important;
+    animation: destroyer-spike 1.2s ease-in-out infinite;
+  }
+
+  .superpower-hybrid {
+    animation: hybrid-morph 3s ease-in-out infinite;
+    border-width: 2px !important;
+  }
+
+  /* Memory-based visual effects */
+  .cell-veteran::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 3px;
+    height: 3px;
+    background: #ffff00;
+    border-radius: 50%;
+    animation: veteran-star 2s ease-in-out infinite;
+  }
+
+  .cell-spreader-glow {
+    box-shadow: 0 0 6px rgba(0, 255, 136, 0.4) !important;
+  }
+
+  .cell-battle-scarred {
+    background: linear-gradient(45deg, currentColor 70%, rgba(255, 0, 68, 0.3) 100%) !important;
+  }
+
+  /* Battle effect animations */
+  .battle-birth-effect {
+    animation: birth-bloom 0.3s ease-out;
+  }
+
+  .battle-death-effect {
+    animation: death-fade 0.4s ease-out;
+  }
+
+  .battle-collision-effect {
+    animation: collision-burst 0.2s ease-out;
+  }
+}
+
+/* Battle and ambient effect keyframes */
+@keyframes ambient-pulse {
+  0%, 100% { 
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+  50% { 
+    background-position: 100% 50%;
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes battle-pulse {
+  0%, 100% { 
+    background-position: 0% 50%;
+    filter: brightness(1) hue-rotate(0deg);
+  }
+  50% { 
+    background-position: 100% 50%;
+    filter: brightness(1.2) hue-rotate(10deg);
+  }
+}
+
+@keyframes victory-flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5) saturate(1.3); }
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, -1px); }
+  20% { transform: translate(2px, 1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, -1px); }
+  70% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(-2px, -1px); }
+}
+
+/* Enhanced superpower animations */
+@keyframes tank-fortify {
+  0%, 100% { 
+    border-width: 3px;
+    transform: scale(1);
+  }
+  50% { 
+    border-width: 4px;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spreader-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(255, 255, 0, 0.8);
+  }
+  50% { 
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(255, 255, 0, 1);
+  }
+}
+
+@keyframes survivor-glow {
+  0%, 100% { 
+    box-shadow: 0 0 4px rgba(255, 0, 68, 0.6);
+  }
+  50% { 
+    box-shadow: 0 0 12px rgba(255, 0, 68, 1);
+  }
+}
+
+@keyframes ghost-shimmer {
+  0%, 100% { 
+    opacity: 0.75;
+    box-shadow: 0 0 4px rgba(255, 68, 170, 0.4);
+  }
+  50% { 
+    opacity: 0.9;
+    box-shadow: 0 0 8px rgba(255, 68, 170, 0.8);
+  }
+}
+
+@keyframes replicator-spin {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 4px rgba(136, 68, 255, 0.6);
+  }
+  50% { 
+    transform: scale(1.1) rotate(180deg);
+    box-shadow: 0 0 12px rgba(136, 68, 255, 1);
+  }
+}
+
+@keyframes destroyer-spike {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 2px rgba(255, 0, 68, 0.4);
+  }
+  50% { 
+    transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(255, 0, 68, 0.8);
+  }
+}
+
+@keyframes hybrid-morph {
+  0% { border-color: #00d4ff; transform: rotate(0deg); }
+  25% { border-color: #00ff88; transform: rotate(90deg); }
+  50% { border-color: #ff8800; transform: rotate(180deg); }
+  75% { border-color: #ff44aa; transform: rotate(270deg); }
+  100% { border-color: #00d4ff; transform: rotate(360deg); }
+}
+
+@keyframes veteran-star {
+  0%, 100% { 
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Battle effect animations */
+@keyframes birth-bloom {
+  0% { 
+    transform: scale(0.5);
+    opacity: 0;
+    filter: brightness(2);
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes death-fade {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  100% { 
+    transform: scale(0.3);
+    opacity: 0;
+    filter: brightness(0.3);
+  }
+}
+
+@keyframes collision-burst {
+  0% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.3);
+    filter: brightness(1.5);
+  }
+  100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Additional existing animations */
+@keyframes pixel-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+    opacity: 1;
+  }
+  50% { 
+    box-shadow: 0 0 2px currentColor, 0 0 5px currentColor, 0 0 8px currentColor;
+    opacity: 0.8;
+  }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
