@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#1a0b2e" rx="2"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M 4 0 L 0 0 0 4" fill="none" stroke="#16213e" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="32" height="32" fill="url(#grid)"/>
+  
+  <!-- Conway's Game of Life iconic pattern - Glider -->
+  <!-- Player 1 cells (cyan) -->
+  <rect x="8" y="12" width="2" height="2" fill="#0f3460"/>
+  <rect x="10" y="12" width="2" height="2" fill="#16537e"/>
+  <rect x="12" y="12" width="2" height="2" fill="#1e6091"/>
+  
+  <rect x="8" y="14" width="2" height="2" fill="#16537e"/>
+  <rect x="12" y="14" width="2" height="2" fill="#1e6091"/>
+  
+  <rect x="12" y="16" width="2" height="2" fill="#0f3460"/>
+  
+  <!-- Player 2 cells (green) -->
+  <rect x="18" y="8" width="2" height="2" fill="#0d5016"/>
+  <rect x="20" y="8" width="2" height="2" fill="#155d1f"/>
+  <rect x="22" y="8" width="2" height="2" fill="#1e6b28"/>
+  
+  <rect x="18" y="10" width="2" height="2" fill="#155d1f"/>
+  <rect x="22" y="10" width="2" height="2" fill="#1e6b28"/>
+  
+  <rect x="22" y="12" width="2" height="2" fill="#0d5016"/>
+  
+  <!-- Sparks/effects -->
+  <circle cx="6" cy="6" r="0.5" fill="#4ade80" opacity="0.8"/>
+  <circle cx="26" cy="26" r="0.5" fill="#06b6d4" opacity="0.8"/>
+  <circle cx="26" cy="6" r="0.3" fill="#f59e0b" opacity="0.6"/>
+  <circle cx="6" cy="26" r="0.3" fill="#ec4899" opacity="0.6"/>
+</svg>

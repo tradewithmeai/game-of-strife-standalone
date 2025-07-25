@@ -1,5 +1,6 @@
 {
   "name": "game-of-strife-standalone",
+  "description": "Conway's Game of Life battle simulator with superpowers - Mobile-optimized strategy game",
   "private": true,
   "version": "1.0.0",
   "type": "module",

@@ -5,11 +5,11 @@ import { GameHUD } from './GameHUD';
 import { PlayerStats } from './PlayerStats';
 import { PhaseIndicator } from './PhaseIndicator';
 import { SimulationCountdown } from './SimulationCountdown';
+import { PlayerTransitionCountdown } from './PlayerTransitionCountdown';
 import { VictoryModal } from './VictoryModal';
 import { useGameState } from '@/hooks/useGameState';
 import { useGameSimulation } from '@/hooks/useGameSimulation';
-import { useSimpleGameRecorder } from '@/hooks/useSimpleGameRecorder';
-import { gameUploader } from '@/services/simpleGameAPI';
+import { useGameStorage } from '@/hooks/useGameStorage';
 import type { GameStage } from '@/types/gameTypes';
 
 interface GameLogicProps {
@@ -18,7 +18,6 @@ interface GameLogicProps {
 }
 
 export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings }) => {
-  console.log('🎮 GameLogic component mounted with settings:', gameSettings);
   
   const BOARD_SIZE = gameSettings.boardSize;
   const TOKENS_PER_PLAYER = gameSettings.tokensPerPlayer;
@@ -28,40 +27,18 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   const ENABLED_SUPERPOWERS = gameSettings.enabledSuperpowers || [];
   const SUPERPOWER_PERCENTAGE = gameSettings.superpowerPercentage || 20;
 
-  // Debug log settings on component mount
-  console.log('🎮 GameLogic Settings:', {
-    boardSize: BOARD_SIZE,
-    tokensPerPlayer: TOKENS_PER_PLAYER,
-    birthRules: BIRTH_RULES,
-    survivalRules: SURVIVAL_RULES,
-    enabledSuperpowers: ENABLED_SUPERPOWERS,
-    superpowerPercentage: SUPERPOWER_PERCENTAGE
-  });
 
   const gameState = useGameState(gameSettings);
-  
-  // Simple game recording for AI training data
-  const recorder = useSimpleGameRecorder();
-
-  // Initialize simple game recording
-  useEffect(() => {
-    console.log('🎬 Starting simple game recording...');
-    recorder.startRecording(gameSettings);
-    
-    return () => {
-      // Cleanup: cancel recording if component unmounts unexpectedly
-      if (recorder.isRecording) {
-        console.log('🎬 Component unmounting, cancelling recording...');
-        recorder.cancelRecording();
-      }
-    };
-  }, [gameSettings, recorder]);
+  const { saveGame } = useGameStorage();
   
   const [currentPlayer, setCurrentPlayer] = useState<0 | 1>(0);
   const [showCountdown, setShowCountdown] = useState(false);
+  const [showPlayerTransition, setShowPlayerTransition] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
   const [finalScores, setFinalScores] = useState({ player1: 0, player2: 0 });
   const [sessionWins, setSessionWins] = useState({ player1: 0, player2: 0 });
+  const [tokensPlaced, setTokensPlaced] = useState(0);
+  const [initialBoardState, setInitialBoardState] = useState<Cell[][]>([]);
 
   const {
     board,
@@ -115,16 +92,12 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
       return newBoard;
     });
 
-    // Record the placement for AI training data
-    recorder.recordPlacement(row, col, currentPlayer, superpowerType);
+    // No recording needed - we'll save the complete game at the end
 
-    // Update token count
+    // Update token count and tracking
+    setTokensPlaced(prev => prev + 1);
     if (currentPlayer === 0) {
       gameState.setPlayer1Tokens(prev => prev - 1);
-      // Auto-advance to player 2 when player 1 finishes
-      if (player1Tokens === 1) { // Will become 0 after this placement
-        setCurrentPlayer(1);
-      }
     } else {
       gameState.setPlayer2Tokens(prev => prev - 1);
     }
@@ -136,38 +109,52 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   };
 
   const handleCountdownComplete = useCallback(() => {
-    console.log('🚀 Countdown complete, starting simulation...');
+    // Capture initial board state before simulation starts
+    setInitialBoardState(board.map(row => row.map(cell => ({ ...cell }))));
+    
     setShowCountdown(false);
     gameState.setGameStage('simulation');
     gameState.setIsSimulating(true);
     gameState.setBoardHistory([]);
-    console.log('🚀 Simulation state set to:', { 
-      gameStage: 'simulation', 
-      isSimulating: true 
-    });
-  }, [gameState]);
+  }, [gameState, board]);
 
   const calculateFinalScores = useCallback((currentBoard: Cell[][]) => {
     let player1Score = 0;
     let player2Score = 0;
+    let totalAliveCells = 0;
+    let deadCells = 0;
     
-    console.log('🎯 Calculating final scores...');
+    
     for (let row = 0; row < BOARD_SIZE; row++) {
       for (let col = 0; col < BOARD_SIZE; col++) {
         const cell = currentBoard[row][col];
-        if (cell && cell.alive && cell.player !== null) {
-          if (cell.player === 0) {
-            player1Score++;
-          } else if (cell.player === 1) {
-            player2Score++;
+        if (cell) {
+          if (cell.alive) {
+            totalAliveCells++;
+            if (cell.player === 0) {
+              player1Score++;
+            } else if (cell.player === 1) {
+              player2Score++;
+            }
+          } else {
+            deadCells++;
           }
         }
       }
     }
     
-    console.log('🎯 Final cell counts:', { player1Score, player2Score });
+    // Verify totals
+    if (player1Score + player2Score !== totalAliveCells) {
+      console.warn('⚠️  Score mismatch detected!', {
+        player1Score,
+        player2Score,
+        sum: player1Score + player2Score,
+        totalAliveCells
+      });
+    }
+    
     return { player1: player1Score, player2: player2Score };
-  }, [BOARD_SIZE]);
+  }, [BOARD_SIZE, tokensPlaced]);
 
   const toggleSimulation = () => {
     if (gameStage === 'simulation') {
@@ -183,45 +170,45 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
     gameState.resetGame();
     setCurrentPlayer(0);
     setShowCountdown(false);
+    setShowPlayerTransition(false);
     setShowVictory(false);
+    setTokensPlaced(0);
   };
 
   const handlePlayAgain = () => {
     setShowVictory(false);
     handleResetGame();
   };
+
+  const handlePlayerTransitionComplete = () => {
+    setShowPlayerTransition(false);
+    setCurrentPlayer(1);
+  };
   
-  // Check if both players finished placing tokens
+  // Handle player transitions and countdown
   useEffect(() => {
-    // Start countdown when player 2 finishes (both players are done)
-    if (currentPlayer === 1 && player2Tokens === 0 && gameStage === 'placement' && !showCountdown) {
-      console.log('Both players finished placing tokens, starting countdown');
+    if (gameStage !== 'placement') return;
+    
+    // Show transition screen when player 1 finishes
+    if (currentPlayer === 0 && player1Tokens === 0 && !showPlayerTransition) {
+      setShowPlayerTransition(true);
+      return;
+    }
+    
+    // Start countdown when both players are done
+    if (player1Tokens === 0 && player2Tokens === 0 && !showCountdown && !showPlayerTransition) {
       setShowCountdown(true);
     }
-    // Also check if we somehow missed the transition (backup check)
-    else if (player1Tokens === 0 && player2Tokens === 0 && gameStage === 'placement' && !showCountdown) {
-      console.log('Backup check: Both players finished, starting countdown');
-      setShowCountdown(true);
-    }
-  }, [currentPlayer, player1Tokens, player2Tokens, gameStage, showCountdown]);
+  }, [currentPlayer, player1Tokens, player2Tokens, gameStage, showCountdown, showPlayerTransition]);
 
   // Simulation loop
   useEffect(() => {
-    console.log('🔄 Simulation useEffect triggered:', { 
-      isSimulating, 
-      gameStage,
-      nextGeneration: typeof nextGeneration
-    });
-    
     if (isSimulating) {
-      console.log('🚀 Starting simulation interval...');
       const interval = setInterval(() => {
-        console.log('⏰ Calling nextGeneration()...');
         nextGeneration();
       }, 200);
 
       return () => {
-        console.log('🛑 Clearing simulation interval');
         clearInterval(interval);
       };
     }
@@ -248,31 +235,23 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
           ...prev,
           [gameWinner === 0 ? 'player1' : 'player2']: prev[gameWinner === 0 ? 'player1' : 'player2'] + 1
         }));
-        console.log('🏆 Player', gameWinner + 1, 'wins this round!');
-      } else {
-        console.log('🤝 Game ended in a draw');
       }
       
       // Update the winner state to match the actual winner
       gameState.setWinner(gameWinner);
       
-      // Finish simple recording with final outcome
-      const compressedRecord = recorder.finishRecording(board, gameWinner, generation, 'max_generations');
+      // Save game for replay
+      const result = {
+        winner: gameWinner,
+        player1Score: scores.player1,
+        player2Score: scores.player2,
+        generations: generation
+      };
       
-      if (compressedRecord) {
-        // Upload game data for AI training
-        gameUploader.uploadGames([compressedRecord]).then(result => {
-          console.log('🎯 Game upload result:', {
-            uploaded: result.uploaded,
-            stored: result.stored,
-            failed: result.failed
-          });
-        });
-      }
-      
+      saveGame('2player', gameSettings, initialBoardState, board, result);
       setShowVictory(true);
     }
-  }, [gameStage, showVictory, calculateFinalScores, board, generation, winner, recorder, gameState]);
+  }, [gameStage, showVictory, calculateFinalScores, board, generation, winner, saveGame, gameSettings, gameState]);
 
   return (
     <div className="min-h-screen bg-retro-dark text-retro-cyan flex flex-col">
@@ -288,17 +267,18 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
         survivalRules={SURVIVAL_RULES}
         enabledSuperpowers={ENABLED_SUPERPOWERS}
         superpowerPercentage={SUPERPOWER_PERCENTAGE}
+        gameMode="2player"
         onBackToMenu={onBackToMenu}
         onToggleSimulation={toggleSimulation}
         onResetGame={handleResetGame}
         recordingStatus={{
-          isRecording: recorder.isRecording,
-          movesRecorded: recorder.getStatus().placementsRecorded,
-          snapshotsRecorded: 0, // Not needed in simple version
-          pendingUploads: recorder.pendingUploads,
-          isUploading: false, // Simplified - no continuous upload status
-          connectionStatus: 'connected' as const, // Simplified
-          totalGamesRecorded: recorder.totalGamesRecorded
+          isRecording: false,
+          movesRecorded: 0,
+          snapshotsRecorded: 0,
+          pendingUploads: 0,
+          isUploading: false,
+          connectionStatus: 'connected' as const,
+          totalGamesRecorded: 0
         }}
       />
 
@@ -339,6 +319,11 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
           {gameStage === 'finished' && 'GAME FINISHED - CLICK RESET TO PLAY AGAIN'}
         </div>
       </div>
+
+      {/* Player Transition Countdown */}
+      {showPlayerTransition && (
+        <PlayerTransitionCountdown onTransitionComplete={handlePlayerTransitionComplete} />
+      )}
 
       {/* Simulation Countdown */}
       {showCountdown && (

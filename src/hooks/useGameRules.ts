@@ -72,7 +72,6 @@ export const useGameRules = (boardSize: number, birthRules: number[], survivalRu
       }
     }
 
-    console.log(`Generation ${generation}: Player 1: ${player1Count}, Player 2: ${player2Count}`);
 
     if (player1Count === 0 && player2Count === 0) return null;
     return player1Count > player2Count ? 0 : player2Count > player1Count ? 1 : null;

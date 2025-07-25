@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 
 export interface Cell {
   player: number | null; // 0 for player 1, 1 for player 2, null for empty
@@ -30,6 +30,144 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   isPlacementStage
 }) => {
   const boardSize = board.length;
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStarted, setDragStarted] = useState(false);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const lastPlacedCell = useRef<string | null>(null);
+
+  // Get cell coordinates from mouse/touch position with expanded hit areas
+  const getCellFromPosition = useCallback((clientX: number, clientY: number): {row: number, col: number} | null => {
+    if (!boardRef.current) return null;
+    
+    const rect = boardRef.current.getBoundingClientRect();
+    const relativeX = clientX - rect.left;
+    const relativeY = clientY - rect.top;
+    
+    // Calculate cell size - for 600px max width
+    const cellSize = Math.min(rect.width, rect.height) / boardSize;
+    
+    // Add tolerance for easier targeting (expand hit area by 25%)
+    const tolerance = cellSize * 0.125; // 12.5% on each side = 25% total expansion
+    
+    const col = Math.floor((relativeX + tolerance) / cellSize);
+    const row = Math.floor((relativeY + tolerance) / cellSize);
+    
+    // Check bounds with tolerance
+    if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+      // Additional check: ensure we're not too far from the actual cell center
+      const cellCenterX = (col + 0.5) * cellSize;
+      const cellCenterY = (row + 0.5) * cellSize;
+      const distanceX = Math.abs(relativeX - cellCenterX);
+      const distanceY = Math.abs(relativeY - cellCenterY);
+      
+      // Allow placement if within expanded area (cellSize/2 + tolerance)
+      if (distanceX <= cellSize * 0.75 && distanceY <= cellSize * 0.75) {
+        return { row, col };
+      }
+    }
+    
+    return null;
+  }, [boardSize]);
+
+  // Handle token placement during drag
+  const handlePlacement = useCallback((row: number, col: number) => {
+    if (!isPlacementStage || !onCellClick) return;
+    
+    const cellKey = `${row}-${col}`;
+    // Avoid placing multiple tokens on the same cell during one drag
+    if (lastPlacedCell.current === cellKey) return;
+    
+    // Check if cell is already occupied
+    if (board[row] && board[row][col] && board[row][col].player !== null) return;
+    
+    lastPlacedCell.current = cellKey;
+    onCellClick(row, col);
+  }, [isPlacementStage, onCellClick, board]);
+
+  // Mouse event handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!isPlacementStage) return;
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStarted(true);
+    lastPlacedCell.current = null;
+    
+    const cell = getCellFromPosition(e.clientX, e.clientY);
+    if (cell) {
+      handlePlacement(cell.row, cell.col);
+    }
+  }, [isPlacementStage, getCellFromPosition, handlePlacement]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !isPlacementStage) return;
+    e.preventDefault();
+    
+    const cell = getCellFromPosition(e.clientX, e.clientY);
+    if (cell) {
+      handlePlacement(cell.row, cell.col);
+    }
+  }, [isDragging, isPlacementStage, getCellFromPosition, handlePlacement]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    lastPlacedCell.current = null;
+  }, []);
+
+  // Touch event handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isPlacementStage) return;
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStarted(true);
+    lastPlacedCell.current = null;
+    
+    const touch = e.touches[0];
+    const cell = getCellFromPosition(touch.clientX, touch.clientY);
+    if (cell) {
+      handlePlacement(cell.row, cell.col);
+    }
+  }, [isPlacementStage, getCellFromPosition, handlePlacement]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging || !isPlacementStage) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const cell = getCellFromPosition(touch.clientX, touch.clientY);
+    if (cell) {
+      handlePlacement(cell.row, cell.col);
+    }
+  }, [isDragging, isPlacementStage, getCellFromPosition, handlePlacement]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    lastPlacedCell.current = null;
+  }, []);
+
+  // Global mouse events for when dragging outside the board
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const cell = getCellFromPosition(e.clientX, e.clientY);
+      if (cell) {
+        handlePlacement(cell.row, cell.col);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      lastPlacedCell.current = null;
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, getCellFromPosition, handlePlacement]);
 
   const getSuperpowerVisualClass = (superpowerType: number, memory: number) => {
     const classes = [];
@@ -68,17 +206,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const getCellColor = (cell: Cell) => {
     let baseColor = '';
-    if (!cell.alive && cell.player === null) {
-      baseColor = 'bg-retro-dark border-retro-purple';
-    } else if (cell.player === 0) {
-      baseColor = cell.alive ? 'bg-retro-cyan' : 'bg-retro-cyan opacity-60';
-    } else if (cell.player === 1) {
-      baseColor = cell.alive ? 'bg-retro-green' : 'bg-retro-green opacity-60';
+    
+    // Only show alive cells - dead cells should be invisible (empty)
+    if (cell.alive && cell.player === 0) {
+      baseColor = 'bg-retro-cyan';
+    } else if (cell.alive && cell.player === 1) {
+      baseColor = 'bg-retro-green';
     } else {
+      // Dead cells or empty cells are invisible
       baseColor = 'bg-retro-dark border-retro-purple';
     }
 
-    const superpowerClass = cell.superpowerType > 0 ? getSuperpowerVisualClass(cell.superpowerType, cell.memory) : '';
+    const superpowerClass = cell.alive && cell.superpowerType > 0 ? getSuperpowerVisualClass(cell.superpowerType, cell.memory) : '';
     return `${baseColor} ${superpowerClass}`.trim();
   };
 
@@ -89,26 +228,35 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   const handleCellClick = useCallback((rowIndex: number, colIndex: number) => {
-    console.log('🖱️ GameBoard cell clicked:', { rowIndex, colIndex, isPlacementStage, hasClickHandler: !!onCellClick });
+    // Only handle click if it wasn't part of a drag operation
+    if (dragStarted) {
+      setDragStarted(false);
+      return;
+    }
     
     if (isPlacementStage && onCellClick) {
-      console.log('📞 Calling onCellClick handler');
       onCellClick(rowIndex, colIndex);
-    } else {
-      console.log('❌ Click ignored:', { isPlacementStage, hasClickHandler: !!onCellClick });
     }
-  }, [onCellClick, isPlacementStage]);
+  }, [onCellClick, isPlacementStage, dragStarted]);
 
   return (
-    <div className="game-screen p-2 bg-retro-dark overflow-auto max-h-[70vh]">
+    <div className="game-screen p-4 bg-retro-dark">
       <div 
-        className="grid gap-0.5 mx-auto"
+        ref={boardRef}
+        className="grid gap-0.5 mx-auto p-2 border-2 border-retro-purple"
         style={{ 
           gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
-          maxWidth: '600px',
+          width: 'min(90vw, calc(100vh - 200px))',
+          height: 'min(90vw, calc(100vh - 200px))',
           touchAction: 'manipulation',
           userSelect: 'none'
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => (

@@ -45,7 +45,7 @@
   }
 
   body {
-    @apply bg-retro-dark text-foreground font-pixel overflow-hidden;
+    @apply bg-retro-dark text-foreground font-pixel;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;

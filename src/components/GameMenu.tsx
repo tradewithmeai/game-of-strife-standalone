@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Settings, Trophy, Volume2, VolumeX, Target } from 'lucide-react';
+import { Play, Settings, Trophy, Volume2, VolumeX, Target, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameMenuProps {
@@ -8,6 +8,7 @@ interface GameMenuProps {
   onShowSettings: () => void;
   onShowScores: () => void;
   onShowGameSettings: () => void;
+  onShowReplay: () => void;
 }
 
 export const GameMenu: React.FC<GameMenuProps> = ({ 
@@ -15,7 +16,8 @@ export const GameMenu: React.FC<GameMenuProps> = ({
   onStartTraining,
   onShowSettings, 
   onShowScores, 
-  onShowGameSettings
+  onShowGameSettings,
+  onShowReplay
 }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -27,16 +29,27 @@ export const GameMenu: React.FC<GameMenuProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const menuItems = [
-    { icon: Play, label: '2 PLAYER BATTLE', action: onStartGame, color: 'text-retro-green' },
-    { icon: Target, label: 'TRAINING MODE', action: onStartTraining, color: 'text-retro-cyan' },
-    { icon: Settings, label: 'GAME SETTINGS', action: onShowGameSettings, color: 'text-retro-orange' },
+  // Primary actions - main menu options
+  const primaryActions = [
+    { icon: Play, label: 'START GAME', action: onShowGameSettings, color: 'text-retro-green' },
+    { icon: Database, label: 'REPLAY GAMES', action: onShowReplay, color: 'text-retro-pink' },
+  ];
+  
+  // Secondary options
+  const secondaryItems = [
     { icon: Trophy, label: 'HIGH SCORES', action: onShowScores, color: 'text-retro-yellow' },
     { icon: Settings, label: 'OPTIONS', action: onShowSettings, color: 'text-retro-purple' },
   ];
 
+  // Game type shortcuts (moved to bottom)
+  const gameTypeItems = [
+    { icon: Target, label: 'TRAINING MODE', action: onStartTraining, color: 'text-retro-cyan' },
+    { icon: Play, label: '2 PLAYER BATTLE', action: onStartGame, color: 'text-retro-orange' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col items-center justify-center p-4 crt-effect">
+    <div className="min-h-screen max-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col items-center p-4 crt-effect overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md">
       {/* Title */}
       <div className="text-center mb-12 animate-slide-up">
         <h1 className="font-pixel text-3xl md:text-5xl text-retro-cyan text-glow mb-2 animate-neon-pulse">
@@ -54,14 +67,29 @@ export const GameMenu: React.FC<GameMenuProps> = ({
         </div>
       </div>
 
-      {/* Menu Items */}
-      <div className="space-y-4 w-full max-w-sm">
-        {menuItems.map((item, index) => (
+      {/* Primary Actions */}
+      <div className="w-full max-w-sm mb-8 space-y-4">
+        {primaryActions.map((action, index) => (
+          <button
+            key={action.label}
+            onClick={action.action}
+            className={`retro-button w-full flex items-center justify-center gap-3 ${action.color} text-lg py-4 animate-slide-up border-2 hover:bg-opacity-80`}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <action.icon size={20} />
+            <span>{action.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Secondary Options */}
+      <div className="space-y-3 w-full max-w-sm mb-8">
+        {secondaryItems.map((item, index) => (
           <button
             key={item.label}
             onClick={item.action}
             className={`retro-button w-full flex items-center justify-center gap-3 ${item.color} animate-slide-up`}
-            style={{ animationDelay: `${index * 0.1}s` }}
+            style={{ animationDelay: `${index * 0.1 + 0.2}s` }}
           >
             <item.icon size={16} />
             <span>{item.label}</span>
@@ -70,7 +98,7 @@ export const GameMenu: React.FC<GameMenuProps> = ({
       </div>
 
       {/* Sound Toggle */}
-      <div className="mt-8 flex items-center gap-3">
+      <div className="mt-6 flex items-center gap-3">
         <button
           onClick={() => setSoundEnabled(!soundEnabled)}
           className={`p-3 border-2 ${soundEnabled ? 'border-retro-green text-retro-green' : 'border-retro-red text-retro-red'} bg-retro-purple hover:bg-opacity-80 transition-colors`}
@@ -80,6 +108,26 @@ export const GameMenu: React.FC<GameMenuProps> = ({
         <span className="font-pixel text-xs text-retro-cyan">
           SOUND: {soundEnabled ? 'ON' : 'OFF'}
         </span>
+      </div>
+
+      {/* Game Type Shortcuts - At Bottom */}
+      <div className="mt-8 w-full max-w-sm">
+        <div className="text-center mb-4">
+          <span className="font-pixel text-xs text-retro-gray">QUICK START</span>
+        </div>
+        <div className="space-y-2">
+          {gameTypeItems.map((item, index) => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              className={`retro-button w-full flex items-center justify-center gap-2 ${item.color} text-xs py-2 animate-slide-up opacity-80 hover:opacity-100`}
+              style={{ animationDelay: `${index * 0.1 + 0.6}s` }}
+            >
+              <item.icon size={14} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Version Info */}
@@ -101,6 +149,7 @@ export const GameMenu: React.FC<GameMenuProps> = ({
             }}
           />
         ))}
+      </div>
       </div>
     </div>
   );

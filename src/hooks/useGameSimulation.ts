@@ -47,9 +47,7 @@ export const useGameSimulation = ({
   }, []);
 
   const nextGeneration = useCallback(() => {
-    console.log('🧬 nextGeneration called, current generation:', generation);
     setBoard(prevBoard => {
-      console.log('🧬 Processing board update...');
       const newBoard = prevBoard.map(row => row.map(cell => ({ ...cell })));
       let changesCount = 0;
       
@@ -92,15 +90,21 @@ export const useGameSimulation = ({
               }
               // If cell already has a superpower type from superpower logic (like Ghost phasing in), keep it
               // Memory will be updated below from the superpower logic result
+            } else if (!shouldLive && cell.alive) {
+              // Cell death - completely reset the cell
+              newBoard[row][col].player = null;
+              newBoard[row][col].superpowerType = 0;
+              newBoard[row][col].memory = 0;
             }
           }
 
-          // Update memory
-          newBoard[row][col].memory = newMemory;
+          // Update memory only for living cells
+          if (newBoard[row][col].alive) {
+            newBoard[row][col].memory = newMemory;
+          }
         }
       }
       
-      console.log(`Generation ${generation + 1}: ${changesCount} changes made`);
       
       // Check for game end conditions
       const boardString = boardToString(newBoard);
@@ -109,7 +113,6 @@ export const useGameSimulation = ({
         
         // Check for loops (if current state matches any previous state)
         if (prev.includes(boardString)) {
-          console.log('Board state repeated - ending simulation');
           setIsSimulating(false);
           setGameStage('finished');
           const finalWinner = checkWinner(newBoard, generation + 1);
@@ -123,7 +126,6 @@ export const useGameSimulation = ({
       
       // Check if simulation has come to rest (no changes)
       if (changesCount === 0) {
-        console.log('No changes - simulation ended');
         setIsSimulating(false);
         setGameStage('finished');
         const finalWinner = checkWinner(newBoard, generation + 1);
@@ -139,7 +141,6 @@ export const useGameSimulation = ({
       
       // Check for max generations
       if (newGen >= maxGenerations) {
-        console.log('Max generations reached');
         setIsSimulating(false);
         setGameStage('finished');
         // Determine winner based on current board state

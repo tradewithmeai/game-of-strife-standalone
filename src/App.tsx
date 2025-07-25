@@ -5,14 +5,15 @@ import { SinglePlayerScreen } from './components/SinglePlayerScreen';
 import { GameSettings, GameSettings as GameSettingsInterface } from './components/GameSettings';
 import { SettingsScreen } from './components/SettingsScreen';
 import { ScoreScreen } from './components/ScoreScreen';
+import ReplayModeScreen from './components/ReplayModeScreen';
 import './App.css';
 
-type Screen = 'menu' | 'game' | 'training' | 'gameSettings' | 'settings' | 'scores';
+type Screen = 'menu' | 'game' | 'training' | 'gameSettings' | 'settings' | 'scores' | 'replay';
 
 // Default game settings  
 const defaultGameSettings: GameSettingsInterface = {
-  boardSize: 40,
-  tokensPerPlayer: 50,
+  boardSize: 20,
+  tokensPerPlayer: 20,
   birthRules: [3],
   survivalRules: [2, 3],
   enabledSuperpowers: [],
@@ -29,6 +30,7 @@ function App() {
   const showGameSettings = () => setCurrentScreen('gameSettings');
   const showSettings = () => setCurrentScreen('settings');
   const showScores = () => setCurrentScreen('scores');
+  const showReplay = () => setCurrentScreen('replay');
 
   const handleSaveGameSettings = (newSettings: GameSettingsInterface) => {
     setGameSettings(newSettings);
@@ -40,6 +42,11 @@ function App() {
     setCurrentScreen('game');
   };
 
+  const handleStartTrainingWithSettings = (newSettings: GameSettingsInterface) => {
+    setGameSettings(newSettings);
+    setCurrentScreen('training');
+  };
+
   return (
     <div className="App">
       {currentScreen === 'menu' && (
@@ -49,6 +56,7 @@ function App() {
           onShowSettings={showSettings}
           onShowScores={showScores}
           onShowGameSettings={showGameSettings}
+          onShowReplay={showReplay}
         />
       )}
       
@@ -72,6 +80,7 @@ function App() {
           onSave={handleSaveGameSettings}
           onCancel={showMenu}
           onStartGameWithSettings={handleStartGameWithSettings}
+          onStartTrainingWithSettings={handleStartTrainingWithSettings}
         />
       )}
       
@@ -81,6 +90,10 @@ function App() {
       
       {currentScreen === 'scores' && (
         <ScoreScreen onBackToMenu={showMenu} />
+      )}
+      
+      {currentScreen === 'replay' && (
+        <ReplayModeScreen onBack={showMenu} />
       )}
     </div>
   );

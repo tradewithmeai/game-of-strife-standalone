@@ -15,6 +15,7 @@ interface GameHUDProps {
   survivalRules: number[];
   enabledSuperpowers: number[];
   superpowerPercentage: number;
+  gameMode?: 'training' | '2player'; // New prop for game mode
   onBackToMenu: () => void;
   onToggleSimulation: () => void;
   onResetGame: () => void;
@@ -41,6 +42,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   survivalRules,
   enabledSuperpowers,
   superpowerPercentage,
+  gameMode = '2player', // Default to 2player for backwards compatibility
   onBackToMenu,
   onToggleSimulation,
   onResetGame,
@@ -64,6 +66,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     return `B${birthRules.join('')}/S${survivalRules.join('')} | ${spawnRate}% SUPER (${enabledCount}/7)`;
   };
 
+  const getGameModeText = () => {
+    return gameMode === 'training' ? 'TRAINING' : '2P';
+  };
+
   return (
     <div className="flex justify-between items-center p-4 bg-retro-purple border-b-2 border-retro-cyan">
       <button
@@ -79,7 +85,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {getStageText()}
         </div>
         <div className="font-pixel text-xs text-retro-cyan mt-1">
-          {boardSize}x{boardSize} | {tokensPerPlayer} TOKENS | 2P | {getRulesText()}
+          {boardSize}x{boardSize} | {tokensPerPlayer} TOKENS | {getGameModeText()} | {getRulesText()}
         </div>
       </div>
 

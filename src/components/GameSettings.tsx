@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Play, RotateCcw, Info } from 'lucide-react';
+import { ArrowLeft, Play, RotateCcw, Info, Target } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,6 +9,7 @@ interface GameSettingsProps {
   onSave: (settings: GameSettings) => void;
   onCancel: () => void;
   onStartGameWithSettings?: (settings: GameSettings) => void;
+  onStartTrainingWithSettings?: (settings: GameSettings) => void;
 }
 
 export interface GameSettings {
@@ -30,7 +31,7 @@ const SUPERPOWER_TYPES = [
   { id: 7, name: 'Hybrid', color: 'bg-gradient-to-r from-blue-500 to-green-500', description: 'Combines multiple abilities' }
 ];
 
-export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onSave, onCancel, onStartGameWithSettings }) => {
+export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onSave, onCancel, onStartGameWithSettings, onStartTrainingWithSettings }) => {
   const [tokensPerPlayer, setTokensPerPlayer] = useState(currentSettings.tokensPerPlayer);
   const [boardSize, setBoardSize] = useState(currentSettings.boardSize);
   const [birthRules, setBirthRules] = useState<number[]>(currentSettings.birthRules);
@@ -38,13 +39,23 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
   const [enabledSuperpowers, setEnabledSuperpowers] = useState<number[]>(currentSettings.enabledSuperpowers);
   const [superpowerPercentage, setSuperpowerPercentage] = useState(currentSettings.superpowerPercentage);
 
+  // Detect which preset is currently active
+  const getCurrentPreset = (): string => {
+    const sorted = [...enabledSuperpowers].sort();
+    if (sorted.length === 0) return 'none';
+    if (sorted.length === 7 && sorted.join(',') === '1,2,3,4,5,6,7') return 'all';
+    if (sorted.join(',') === '1,3') return 'defensive';
+    if (sorted.join(',') === '2,5,6') return 'aggressive';
+    return 'custom';
+  };
+
   const handleStandardConwayRules = () => {
     setBirthRules([3]);
     setSurvivalRules([2, 3]);
     setEnabledSuperpowers([1, 2, 3, 4, 5, 6, 7]);
     setSuperpowerPercentage(20);
-    setBoardSize(30);
-    setTokensPerPlayer(50);
+    setBoardSize(20);
+    setTokensPerPlayer(20);
   };
 
   const handleStartGame = () => {
@@ -56,12 +67,25 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
       enabledSuperpowers,
       superpowerPercentage
     };
-    console.log('🎮 Starting game with settings:', settings);
     if (onStartGameWithSettings) {
-      console.log('🎮 Using onStartGameWithSettings callback');
       onStartGameWithSettings(settings);
     } else {
-      console.log('🎮 Using onSave callback (fallback)');
+      onSave(settings);
+    }
+  };
+
+  const handleStartTraining = () => {
+    const settings = {
+      tokensPerPlayer,
+      boardSize,
+      birthRules,
+      survivalRules,
+      enabledSuperpowers,
+      superpowerPercentage
+    };
+    if (onStartTrainingWithSettings) {
+      onStartTrainingWithSettings(settings);
+    } else {
       onSave(settings);
     }
   };
@@ -183,14 +207,14 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
             <Slider
               value={[boardSize]}
               onValueChange={(value) => setBoardSize(value[0])}
-              max={50}
+              max={20}
               min={10}
-              step={5}
+              step={1}
               className="w-full"
             />
             <div className="flex justify-between font-pixel text-xs text-retro-cyan">
               <span>10x10</span>
-              <span>50x50</span>
+              <span>20x20</span>
             </div>
           </div>
         </div>
@@ -283,34 +307,39 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
           <div className="flex flex-wrap gap-2 mb-4">
             <button
               onClick={() => setSuperpowerPreset('all')}
-              className="retro-button px-3 py-1 text-xs"
+              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'all' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
             >
               ALL POWERS
             </button>
             <button
               onClick={() => setSuperpowerPreset('defensive')}
-              className="retro-button px-3 py-1 text-xs"
+              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'defensive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
             >
               DEFENSIVE
             </button>
             <button
               onClick={() => setSuperpowerPreset('aggressive')}
-              className="retro-button px-3 py-1 text-xs"
+              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'aggressive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
             >
               AGGRESSIVE
             </button>
             <button
               onClick={() => setSuperpowerPreset('random')}
-              className="retro-button px-3 py-1 text-xs"
+              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'random' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
             >
               RANDOM
             </button>
             <button
               onClick={() => setSuperpowerPreset('none')}
-              className="retro-button px-3 py-1 text-xs text-retro-red"
+              className={`retro-button px-3 py-1 text-xs text-retro-red ${getCurrentPreset() === 'none' ? 'bg-retro-red text-retro-dark border-retro-red' : ''}`}
             >
               NONE
             </button>
+            {getCurrentPreset() === 'custom' && (
+              <span className="retro-button px-3 py-1 text-xs text-retro-yellow bg-retro-yellow/20 border-retro-yellow">
+                CUSTOM
+              </span>
+            )}
           </div>
 
           {/* Superpower Grid */}
@@ -373,14 +402,24 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
           </div>
         </div>
 
-        {/* Start Game Button */}
-        <button
-          onClick={handleStartGame}
-          className="retro-button w-full flex items-center justify-center gap-3 text-retro-green py-4 text-lg animate-pulse"
-        >
-          <Play size={20} />
-          <span>START 2 PLAYER BATTLE</span>
-        </button>
+        {/* Game Mode Buttons */}
+        <div className="space-y-3">
+          <button
+            onClick={handleStartGame}
+            className="retro-button w-full flex items-center justify-center gap-3 text-retro-green py-4 text-lg animate-pulse"
+          >
+            <Play size={20} />
+            <span>START 2 PLAYER BATTLE</span>
+          </button>
+          
+          <button
+            onClick={handleStartTraining}
+            className="retro-button w-full flex items-center justify-center gap-3 text-retro-yellow py-3 text-base"
+          >
+            <Target size={18} />
+            <span>START TRAINING SESSION</span>
+          </button>
+        </div>
       </div>
 
       {/* Instructions */}

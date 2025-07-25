@@ -7,8 +7,7 @@ import { SimulationCountdown } from './SimulationCountdown';
 import { SinglePlayerVictoryModal } from './SinglePlayerVictoryModal';
 import { useGameState } from '@/hooks/useGameState';
 import { useGameSimulation } from '@/hooks/useGameSimulation';
-import { useSimpleGameRecorder } from '@/hooks/useSimpleGameRecorder';
-import { gameUploader } from '@/services/simpleGameAPI';
+import { useGameStorage } from '@/hooks/useGameStorage';
 import type { GameStage } from '@/types/gameTypes';
 
 interface SinglePlayerLogicProps {
@@ -17,7 +16,6 @@ interface SinglePlayerLogicProps {
 }
 
 export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMenu, gameSettings }) => {
-  console.log('🎮 SinglePlayerLogic component mounted with settings:', gameSettings);
   
   const BOARD_SIZE = gameSettings.boardSize;
   const TOKENS_PER_PLAYER = gameSettings.tokensPerPlayer;
@@ -27,39 +25,15 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
   const ENABLED_SUPERPOWERS = gameSettings.enabledSuperpowers || [];
   const SUPERPOWER_PERCENTAGE = gameSettings.superpowerPercentage || 20;
 
-  // Debug log settings on component mount
-  console.log('🎮 SinglePlayerLogic Settings:', {
-    boardSize: BOARD_SIZE,
-    tokensPerPlayer: TOKENS_PER_PLAYER,
-    birthRules: BIRTH_RULES,
-    survivalRules: SURVIVAL_RULES,
-    enabledSuperpowers: ENABLED_SUPERPOWERS,
-    superpowerPercentage: SUPERPOWER_PERCENTAGE
-  });
 
   const gameState = useGameState(gameSettings);
-  
-  // Simple game recording for AI training data
-  const recorder = useSimpleGameRecorder();
-
-  // Initialize simple game recording
-  useEffect(() => {
-    console.log('🎬 Starting simple game recording...');
-    recorder.startRecording(gameSettings);
-    
-    return () => {
-      // Cleanup: cancel recording if component unmounts unexpectedly
-      if (recorder.isRecording) {
-        console.log('🎬 Component unmounting, cancelling recording...');
-        recorder.cancelRecording();
-      }
-    };
-  }, [gameSettings, recorder]);
+  const { saveGame } = useGameStorage();
   
   const [showCountdown, setShowCountdown] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [tokensPlaced, setTokensPlaced] = useState(0);
+  const [initialBoardState, setInitialBoardState] = useState<Cell[][]>([]);
 
   const {
     board,
@@ -110,42 +84,49 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
       return newBoard;
     });
 
-    // Record the placement for AI training data
-    recorder.recordPlacement(row, col, 0, superpowerType);
+    // No recording needed - we'll save the complete game at the end
 
     // Update token count
     gameState.setPlayer1Tokens(prev => prev - 1);
     setTokensPlaced(prev => prev + 1);
-  }, [gameStage, board, player1Tokens, gameState, SUPERPOWER_PERCENTAGE, ENABLED_SUPERPOWERS, recorder]);
+  }, [gameStage, board, player1Tokens, gameState, SUPERPOWER_PERCENTAGE, ENABLED_SUPERPOWERS]);
 
   const handleCountdownComplete = useCallback(() => {
-    console.log('🚀 Countdown complete, starting simulation...');
+    // Capture initial board state before simulation starts
+    setInitialBoardState(board.map(row => row.map(cell => ({ ...cell }))));
+    
     setShowCountdown(false);
     gameState.setGameStage('simulation');
     gameState.setIsSimulating(true);
     gameState.setBoardHistory([]);
-    console.log('🚀 Simulation state set to:', { 
-      gameStage: 'simulation', 
-      isSimulating: true 
-    });
-  }, [gameState]);
+  }, [gameState, board]);
 
   const calculateFinalScore = useCallback((currentBoard: Cell[][]) => {
     let score = 0;
+    let aliveCells = 0;
+    let playerCells = 0;
     
-    console.log('🎯 Calculating final score...');
+    
     for (let row = 0; row < BOARD_SIZE; row++) {
       for (let col = 0; col < BOARD_SIZE; col++) {
         const cell = currentBoard[row][col];
-        if (cell && cell.alive && cell.player === 0) {
-          score++;
+        if (cell) {
+          // Only count living cells (consistent with 2-player mode)
+          if (cell.alive) {
+            aliveCells++;
+            if (cell.player === 0) {
+              score++;
+            }
+          }
+          
+          // Debug counters  
+          if (cell.player !== null) playerCells++;
         }
       }
     }
     
-    console.log('🎯 Final cell count:', score);
     return score;
-  }, [BOARD_SIZE]);
+  }, [BOARD_SIZE, tokensPlaced]);
 
   const toggleSimulation = () => {
     if (gameStage === 'simulation') {
@@ -162,6 +143,7 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
     setShowCountdown(false);
     setShowVictory(false);
     setTokensPlaced(0);
+    setInitialBoardState([]);
   };
 
   const handlePlayAgain = () => {
@@ -170,35 +152,24 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
   };
 
   const handleStartSimulation = () => {
-    console.log('Player finished placing tokens, starting countdown');
     setShowCountdown(true);
   };
   
   // Check if player finished placing tokens
   useEffect(() => {
     if (player1Tokens === 0 && gameStage === 'placement' && !showCountdown) {
-      console.log('Player finished placing all tokens, starting countdown');
       setShowCountdown(true);
     }
   }, [player1Tokens, gameStage, showCountdown]);
 
   // Simulation loop
   useEffect(() => {
-    console.log('🔄 Simulation useEffect triggered:', { 
-      isSimulating, 
-      gameStage,
-      nextGeneration: typeof nextGeneration
-    });
-    
     if (isSimulating) {
-      console.log('🚀 Starting simulation interval...');
       const interval = setInterval(() => {
-        console.log('⏰ Calling nextGeneration()...');
         nextGeneration();
       }, 200);
 
       return () => {
-        console.log('🛑 Clearing simulation interval');
         clearInterval(interval);
       };
     }
@@ -213,29 +184,18 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
       // Calculate survival rate
       const survivalRate = tokensPlaced > 0 ? Math.round((score / tokensPlaced) * 100) : 0;
       
-      console.log('🏆 Training session completed:', {
-        tokensPlaced,
-        finalScore: score,
-        survivalRate: `${survivalRate}%`
-      });
+      // Save game for replay
+      const result = {
+        winner: 0,
+        player1Score: score,
+        player2Score: 0,
+        generations: generation
+      };
       
-      // Finish simple recording with final outcome
-      const compressedRecord = recorder.finishRecording(board, 0, generation, 'max_generations');
-      
-      if (compressedRecord) {
-        // Upload game data for AI training
-        gameUploader.uploadGames([compressedRecord]).then(result => {
-          console.log('🎯 Game upload result:', {
-            uploaded: result.uploaded,
-            stored: result.stored,
-            failed: result.failed
-          });
-        });
-      }
-      
+      saveGame('training', gameSettings, initialBoardState, board, result);
       setShowVictory(true);
     }
-  }, [gameStage, showVictory, calculateFinalScore, board, generation, recorder, tokensPlaced]);
+  }, [gameStage, showVictory, calculateFinalScore, board, generation, saveGame, gameSettings, tokensPlaced, initialBoardState]);
 
   return (
     <div className="min-h-screen bg-retro-dark text-retro-cyan flex flex-col">
@@ -251,17 +211,18 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
         survivalRules={SURVIVAL_RULES}
         enabledSuperpowers={ENABLED_SUPERPOWERS}
         superpowerPercentage={SUPERPOWER_PERCENTAGE}
+        gameMode="training"
         onBackToMenu={onBackToMenu}
         onToggleSimulation={toggleSimulation}
         onResetGame={handleResetGame}
         recordingStatus={{
-          isRecording: recorder.isRecording,
-          movesRecorded: recorder.getStatus().placementsRecorded,
-          snapshotsRecorded: 0, // Not needed in simple version
-          pendingUploads: recorder.pendingUploads,
-          isUploading: false, // Simplified - no continuous upload status
-          connectionStatus: 'connected' as const, // Simplified
-          totalGamesRecorded: recorder.totalGamesRecorded
+          isRecording: false,
+          movesRecorded: 0,
+          snapshotsRecorded: 0,
+          pendingUploads: 0,
+          isUploading: false,
+          connectionStatus: 'connected' as const,
+          totalGamesRecorded: 0
         }}
       />
 

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Data Inspector</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin: 20px 0;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .header {
+            color: #00ffff;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .data-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #1a1a1a;
+            border-left: 3px solid #00ff00;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #44ff44;
+        }
+        .warning {
+            color: #ffaa00;
+        }
+        pre {
+            background: #0f0f0f;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #00aa00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Game of Strife - Data Inspector</h1>
+        
+        <div class="section">
+            <div class="header">📊 localStorage Inspector</div>
+            <button onclick="checkLocalStorage()">🔍 Check for Game Data</button>
+            <button onclick="clearGameData()">🗑️ Clear Game Data</button>
+            <button onclick="generateTestData()">🧪 Generate Test Data</button>
+            <div id="localStorageResults"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">🎯 Game Records Analysis</div>
+            <div id="gameAnalysis"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">🤖 AI Training Data Verification</div>
+            <div id="aiVerification"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">🔄 Simulation Replication Test</div>
+            <button onclick="testReplication()">▶️ Test Replication</button>
+            <div id="replicationResults"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const results = document.getElementById('localStorageResults');
+            results.innerHTML = '';
+
+            console.log('🔍 Checking localStorage for game data...');
+
+            let gameRecords = [];
+            let pendingUploads = [];
+            let recorderData = null;
+
+            // Check for all types of game data storage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+
+                console.log(`Checking key: ${key}`);
+
+                try {
+                    if (key.startsWith('gameRecord_')) {
+                        const record = JSON.parse(value);
+                        gameRecords.push(record);
+                        console.log('Found game record:', record.gameId);
+                    } else if (key === 'gameRecorderData') {
+                        recorderData = JSON.parse(value);
+                        console.log('Found recorder data:', recorderData);
+                    } else if (key === 'gameDataQueue') {
+                        pendingUploads = JSON.parse(value);
+                        console.log('Found pending uploads:', pendingUploads.length);
+                    }
+                } catch (e) {
+                    console.log(`Error parsing ${key}:`, e);
+                }
+            }
+
+            // Display results
+            results.innerHTML = `
+                <div class="data-item">
+                    <strong>🎮 Game Records Found:</strong> ${gameRecords.length}
+                </div>
+                <div class="data-item">
+                    <strong>📤 Pending Uploads:</strong> ${pendingUploads.length}
+                </div>
+                <div class="data-item">
+                    <strong>📊 Recorder State:</strong> ${recorderData ? 'Found' : 'Not found'}
+                </div>
+            `;
+
+            if (gameRecords.length > 0) {
+                analyzeGameRecords(gameRecords);
+            } else {
+                results.innerHTML += `
+                    <div class="data-item warning">
+                        ⚠️ No game records found. Play some games first!
+                    </div>
+                `;
+            }
+
+            return { gameRecords, pendingUploads, recorderData };
+        }
+
+        function analyzeGameRecords(records) {
+            const analysis = document.getElementById('gameAnalysis');
+            
+            let html = `<div class="data-item success">✅ Found ${records.length} game records</div>`;
+            
+            records.forEach((record, index) => {
+                html += `
+                    <div class="data-item">
+                        <strong>Game ${index + 1}:</strong> ${record.gameId || 'Unknown ID'}<br>
+                        <strong>Settings:</strong> ${record.settings?.boardSize || '?'}x${record.settings?.boardSize || '?'}, ${record.settings?.tokensPerPlayer || '?'} tokens<br>
+                        <strong>Placements:</strong> ${record.placements?.length || 0}<br>
+                        <strong>Winner:</strong> ${record.outcome?.winner !== null ? `Player ${record.outcome.winner + 1}` : 'Draw'}<br>
+                        <strong>Scores:</strong> P1=${record.outcome?.finalScores?.player1 || '?'}, P2=${record.outcome?.finalScores?.player2 || '?'}
+                    </div>
+                `;
+            });
+
+            analysis.innerHTML = html;
+            verifyAIData(records);
+        }
+
+        function verifyAIData(records) {
+            const verification = document.getElementById('aiVerification');
+            
+            let totalScore = 0;
+            let html = '';
+
+            records.forEach((record, index) => {
+                const checks = {
+                    hasSettings: !!record.settings,
+                    hasBoardSize: typeof record.settings?.boardSize === 'number',
+                    hasRules: Array.isArray(record.settings?.birthRules) && Array.isArray(record.settings?.survivalRules),
+                    hasSuperpowers: Array.isArray(record.settings?.enabledSuperpowers),
+                    
+                    hasPlacements: Array.isArray(record.placements) && record.placements.length > 0,
+                    placementsHavePositions: record.placements?.every(p => typeof p.row === 'number' && typeof p.col === 'number'),
+                    placementsHavePlayer: record.placements?.every(p => p.player === 0 || p.player === 1),
+                    placementsHaveType: record.placements?.every(p => typeof p.superpowerType === 'number'),
+                    placementsHaveOrder: record.placements?.every(p => typeof p.moveNumber === 'number'),
+                    
+                    hasOutcome: !!record.outcome,
+                    hasWinner: record.outcome?.winner === 0 || record.outcome?.winner === 1 || record.outcome?.winner === null,
+                    hasScores: typeof record.outcome?.finalScores?.player1 === 'number',
+                    hasGenerations: typeof record.outcome?.totalGenerations === 'number'
+                };
+
+                const passedChecks = Object.values(checks).filter(Boolean).length;
+                const totalChecks = Object.keys(checks).length;
+                const score = passedChecks / totalChecks;
+                totalScore += score;
+
+                const status = score === 1 ? 'success' : score > 0.8 ? 'warning' : 'error';
+                
+                html += `
+                    <div class="data-item ${status}">
+                        <strong>Game ${index + 1}:</strong> ${Math.round(score * 100)}% complete (${passedChecks}/${totalChecks} checks)
+                    </div>
+                `;
+            });
+
+            const averageScore = records.length > 0 ? totalScore / records.length : 0;
+            const overallStatus = averageScore === 1 ? 'success' : averageScore > 0.8 ? 'warning' : 'error';
+
+            html = `
+                <div class="data-item ${overallStatus}">
+                    <strong>📊 Overall AI Training Data Quality: ${Math.round(averageScore * 100)}%</strong>
+                </div>
+            ` + html;
+
+            verification.innerHTML = html;
+        }
+
+        function testReplication() {
+            const data = checkLocalStorage();
+            const results = document.getElementById('replicationResults');
+            
+            if (data.gameRecords.length === 0) {
+                results.innerHTML = `
+                    <div class="data-item error">
+                        ❌ No game records to test replication with
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            let canReplicateAll = true;
+
+            data.gameRecords.forEach((record, index) => {
+                const requirements = {
+                    boardSize: !!record.settings?.boardSize,
+                    rules: !!record.settings?.birthRules && !!record.settings?.survivalRules,
+                    superpowerSettings: !!record.settings?.enabledSuperpowers,
+                    startingPositions: record.placements?.length === (record.settings?.tokensPerPlayer * 2),
+                    playerAssignments: record.placements?.every(p => p.player === 0 || p.player === 1),
+                    superpowerTypes: record.placements?.every(p => typeof p.superpowerType === 'number'),
+                    expectedOutcome: !!record.outcome
+                };
+
+                const canReplicate = Object.values(requirements).every(Boolean);
+                canReplicateAll = canReplicateAll && canReplicate;
+
+                const status = canReplicate ? 'success' : 'error';
+                const icon = canReplicate ? '✅' : '❌';
+
+                html += `
+                    <div class="data-item ${status}">
+                        ${icon} <strong>Game ${index + 1}:</strong> ${canReplicate ? 'CAN replicate' : 'CANNOT replicate'}
+                    </div>
+                `;
+            });
+
+            results.innerHTML = html + `
+                <div class="data-item ${canReplicateAll ? 'success' : 'warning'}">
+                    <strong>🎯 Overall Replication Status: ${canReplicateAll ? 'ALL GAMES CAN BE REPLICATED' : 'SOME GAMES MISSING DATA'}</strong>
+                </div>
+            `;
+        }
+
+        function clearGameData() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('gameRecord_') || key === 'gameRecorderData' || key === 'gameDataQueue') {
+                    keys.push(key);
+                }
+            }
+
+            keys.forEach(key => localStorage.removeItem(key));
+            
+            document.getElementById('localStorageResults').innerHTML = `
+                <div class="data-item success">
+                    ✅ Cleared ${keys.length} game data items
+                </div>
+            `;
+            
+            document.getElementById('gameAnalysis').innerHTML = '';
+            document.getElementById('aiVerification').innerHTML = '';
+            document.getElementById('replicationResults').innerHTML = '';
+        }
+
+        function generateTestData() {
+            // Generate a sample game record for testing
+            const gameId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+            
+            const testRecord = {
+                gameId,
+                timestamp: Date.now(),
+                settings: {
+                    boardSize: 20,
+                    tokensPerPlayer: 5,
+                    birthRules: [3],
+                    survivalRules: [2, 3],
+                    enabledSuperpowers: [1, 2, 3],
+                    superpowerPercentage: 20
+                },
+                placements: [
+                    { row: 5, col: 5, player: 0, superpowerType: 1, moveNumber: 1 },
+                    { row: 6, col: 6, player: 0, superpowerType: 0, moveNumber: 2 },
+                    { row: 7, col: 7, player: 0, superpowerType: 2, moveNumber: 3 },
+                    { row: 8, col: 8, player: 0, superpowerType: 0, moveNumber: 4 },
+                    { row: 9, col: 9, player: 0, superpowerType: 3, moveNumber: 5 },
+                    { row: 15, col: 15, player: 1, superpowerType: 1, moveNumber: 6 },
+                    { row: 14, col: 14, player: 1, superpowerType: 0, moveNumber: 7 },
+                    { row: 13, col: 13, player: 1, superpowerType: 2, moveNumber: 8 },
+                    { row: 12, col: 12, player: 1, superpowerType: 0, moveNumber: 9 },
+                    { row: 11, col: 11, player: 1, superpowerType: 3, moveNumber: 10 }
+                ],
+                outcome: {
+                    winner: Math.floor(Math.random() * 2),
+                    finalScores: { player1: 15, player2: 18 },
+                    totalGenerations: 50,
+                    gameEndReason: 'max_generations'
+                },
+                version: '1.0.0',
+                platform: 'web'
+            };
+
+            localStorage.setItem(`gameRecord_${gameId}`, JSON.stringify(testRecord));
+            
+            document.getElementById('localStorageResults').innerHTML = `
+                <div class="data-item success">
+                    ✅ Generated test game: ${gameId}
+                </div>
+            `;
+
+            checkLocalStorage();
+        }
+
+        // Auto-check on page load
+        window.onload = function() {
+            checkLocalStorage();
+        };
+
+        console.log('🎮 Game Data Inspector loaded. Use the buttons to check for game data.');
+    </script>
+</body>
+</html>

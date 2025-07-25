@@ -1,6 +1,7 @@
 
-import React from 'react';
-import { Trophy, RotateCcw, Home } from 'lucide-react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Trophy, RotateCcw, Home, Eye } from 'lucide-react';
 
 interface VictoryModalProps {
   winner: number | null;
@@ -21,6 +22,24 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   onPlayAgain,
   onMainMenu
 }) => {
+  const [isHidden, setIsHidden] = useState(false);
+
+  // Add global mouse up listener to ensure modal returns even if cursor moves off button
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsHidden(false);
+    };
+
+    if (isHidden) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchend', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalMouseUp);
+    };
+  }, [isHidden]);
   const getWinnerText = () => {
     if (winner === null) return "IT'S A DRAW!";
     return `PLAYER ${winner + 1} WINS!`;
@@ -31,93 +50,88 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
     return winner === 0 ? 'text-retro-cyan' : 'text-retro-green';
   };
 
-  return (
-    <div className="fixed inset-0 bg-retro-dark bg-opacity-95 flex items-center justify-center z-50">
-      <div className="game-screen p-8 max-w-md mx-4 text-center">
-        {/* Victory Title */}
-        <div className="mb-6">
-          <Trophy className={`mx-auto mb-4 ${getWinnerColor()} animate-bounce`} size={64} />
-          <h1 className={`font-pixel text-3xl ${getWinnerColor()} text-glow mb-2`}>
-            {getWinnerText()}
-          </h1>
-          <div className="font-pixel text-sm text-retro-cyan opacity-75">
-            GENERATION {generation}
-          </div>
-        </div>
-
-        {/* Final Scores */}
-        <div className="mb-8 space-y-4">
-          <div className="font-pixel text-lg text-retro-yellow mb-4">
-            FINAL CELL COUNT
-          </div>
-          
-          <div className="flex justify-between items-center bg-retro-purple bg-opacity-30 p-3 rounded">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-retro-cyan rounded"></div>
-              <span className="font-pixel text-retro-cyan">PLAYER 1</span>
-            </div>
-            <div className="font-pixel text-xl text-retro-cyan text-glow">
-              {player1Score} CELLS
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4"
+      style={{ 
+        background: 'rgba(26, 26, 46, 0.8)',
+        backdropFilter: 'blur(2px)'
+      }}
+    >
+      <div 
+        className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-retro-dark border-2 border-retro-cyan text-center font-pixel mx-auto"
+        style={{ 
+          maxHeight: '95vh',
+          overflow: 'auto',
+          minHeight: 'auto'
+        }}
+      >
+        <div className="p-2 sm:p-3 space-y-1 sm:space-y-2">
+          {/* Victory Title */}
+          <div>
+            <Trophy className={`mx-auto ${getWinnerColor()}`} size={20} />
+            <h1 className={`text-xs sm:text-sm ${getWinnerColor()} text-glow`}>
+              {getWinnerText()}
+            </h1>
+            <div className="text-xs text-retro-cyan opacity-75">
+              GEN {generation}
             </div>
           </div>
 
-          <div className="flex justify-between items-center bg-retro-purple bg-opacity-30 p-3 rounded">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-retro-green rounded"></div>
-              <span className="font-pixel text-retro-green">PLAYER 2</span>
+          {/* Scores & Session Combined */}
+          <div className="space-y-1">
+            <div className="text-xs text-retro-yellow">
+              SCORES (WINS)
             </div>
-            <div className="font-pixel text-xl text-retro-green text-glow">
-              {player2Score} CELLS
+            
+            <div className="flex justify-between items-center bg-retro-purple bg-opacity-30 p-1 rounded text-xs">
+              <span className="text-retro-cyan">P1: {player1Score} ({sessionWins.player1})</span>
             </div>
-          </div>
-        </div>
 
-        {/* Session Wins */}
-        <div className="mb-8 space-y-4">
-          <div className="font-pixel text-lg text-retro-pink mb-4">
-            SESSION WINS
-          </div>
-          
-          <div className="flex justify-between items-center bg-retro-dark bg-opacity-50 p-3 rounded">
-            <div className="flex items-center gap-2">
-              <Trophy className="text-retro-cyan" size={16} />
-              <span className="font-pixel text-retro-cyan">PLAYER 1</span>
-            </div>
-            <div className="font-pixel text-2xl text-retro-cyan text-glow">
-              {sessionWins.player1}
+            <div className="flex justify-between items-center bg-retro-purple bg-opacity-30 p-1 rounded text-xs">
+              <span className="text-retro-green">P2: {player2Score} ({sessionWins.player2})</span>
             </div>
           </div>
 
-          <div className="flex justify-between items-center bg-retro-dark bg-opacity-50 p-3 rounded">
-            <div className="flex items-center gap-2">
-              <Trophy className="text-retro-green" size={16} />
-              <span className="font-pixel text-retro-green">PLAYER 2</span>
-            </div>
-            <div className="font-pixel text-2xl text-retro-green text-glow">
-              {sessionWins.player2}
-            </div>
+          {/* Action Buttons */}
+          <div className="flex gap-1 sm:gap-2">
+            <button
+              onMouseDown={() => setIsHidden(true)}
+              onMouseUp={() => setIsHidden(false)}
+              onMouseLeave={() => setIsHidden(false)}
+              onTouchStart={() => setIsHidden(true)}
+              onTouchEnd={() => setIsHidden(false)}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-yellow text-retro-yellow hover:bg-retro-yellow hover:text-retro-dark transition-colors select-none"
+            >
+              <Eye size={10} />
+              VIEW
+            </button>
+
+            <button
+              onClick={onPlayAgain}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-green text-retro-green hover:bg-retro-green hover:text-retro-dark transition-colors"
+            >
+              <RotateCcw size={10} />
+              AGAIN
+            </button>
+
+            <button
+              onClick={onMainMenu}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-cyan text-retro-cyan hover:bg-retro-cyan hover:text-retro-dark transition-colors"
+            >
+              <Home size={10} />
+              MENU
+            </button>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <button
-            onClick={onPlayAgain}
-            className="retro-button w-full flex items-center justify-center gap-2 px-6 py-3 text-retro-green border-retro-green hover:bg-retro-green hover:text-retro-dark"
-          >
-            <RotateCcw size={16} />
-            PLAY AGAIN
-          </button>
-
-          <button
-            onClick={onMainMenu}
-            className="retro-button w-full flex items-center justify-center gap-2 px-6 py-3 text-retro-cyan border-retro-cyan hover:bg-retro-cyan hover:text-retro-dark"
-          >
-            <Home size={16} />
-            MAIN MENU
-          </button>
         </div>
       </div>
     </div>
   );
+
+  // Hide the modal when the View Board button is pressed
+  if (isHidden) {
+    return null;
+  }
+
+  return createPortal(modalContent, document.body);
 };

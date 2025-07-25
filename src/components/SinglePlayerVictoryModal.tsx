@@ -1,5 +1,6 @@
-import React from 'react';
-import { Target, RotateCcw, Home, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Target, RotateCcw, Home, TrendingUp, Eye } from 'lucide-react';
 
 interface SinglePlayerVictoryModalProps {
   finalScore: number;
@@ -16,6 +17,7 @@ export const SinglePlayerVictoryModal: React.FC<SinglePlayerVictoryModalProps> =
   onPlayAgain,
   onMainMenu
 }) => {
+  const [isHidden, setIsHidden] = useState(false);
   const survivalRate = tokensPlaced > 0 ? Math.round((finalScore / tokensPlaced) * 100) : 0;
   
   const getPerformanceText = () => {
@@ -26,102 +28,120 @@ export const SinglePlayerVictoryModal: React.FC<SinglePlayerVictoryModalProps> =
     return { text: "TRY AGAIN!", color: "text-retro-red" };
   };
 
-  const getPerformanceIcon = () => {
-    if (survivalRate >= 60) return <Target className="mx-auto mb-4 text-retro-green animate-bounce" size={64} />;
-    return <TrendingUp className="mx-auto mb-4 text-retro-yellow animate-bounce" size={64} />;
-  };
+  // Add global mouse up listener to ensure modal returns even if cursor moves off button
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsHidden(false);
+    };
+
+    if (isHidden) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchend', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalMouseUp);
+    };
+  }, [isHidden]);
 
   const performance = getPerformanceText();
 
-  return (
-    <div className="fixed inset-0 bg-retro-dark bg-opacity-95 flex items-center justify-center z-50">
-      <div className="game-screen p-8 max-w-md mx-4 text-center">
-        {/* Training Complete Title */}
-        <div className="mb-6">
-          {getPerformanceIcon()}
-          <h1 className="font-pixel text-2xl text-retro-cyan text-glow mb-2">
-            TRAINING COMPLETE
-          </h1>
-          <h2 className={`font-pixel text-xl ${performance.color} text-glow mb-2`}>
-            {performance.text}
-          </h2>
-          <div className="font-pixel text-sm text-retro-cyan opacity-75">
-            SIMULATION ENDED AT GENERATION {generation}
-          </div>
-        </div>
-
-        {/* Training Results */}
-        <div className="mb-8 space-y-4">
-          <div className="font-pixel text-lg text-retro-yellow mb-4">
-            SURVIVAL ANALYSIS
-          </div>
-          
-          {/* Survival Rate - Main Metric */}
-          <div className="bg-retro-purple bg-opacity-50 p-4 rounded border-2 border-retro-cyan">
-            <div className="font-pixel text-sm text-retro-cyan mb-2">
-              SURVIVAL RATE
-            </div>
-            <div className={`font-pixel text-4xl ${performance.color} text-glow`}>
-              {survivalRate}%
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4"
+      style={{ 
+        background: 'rgba(26, 26, 46, 0.8)',
+        backdropFilter: 'blur(2px)'
+      }}
+    >
+      <div 
+        className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-retro-dark border-2 border-retro-cyan text-center font-pixel mx-auto"
+        style={{ 
+          maxHeight: '95vh',
+          overflow: 'auto',
+          minHeight: 'auto'
+        }}
+      >
+        <div className="p-2 sm:p-3 space-y-1 sm:space-y-2">
+          {/* Training Complete Title */}
+          <div>
+            <Target className="mx-auto text-retro-cyan" size={20} />
+            <h1 className="text-xs sm:text-sm text-retro-cyan text-glow">
+              TRAINING COMPLETE
+            </h1>
+            <h2 className={`text-xs ${performance.color}`}>
+              {performance.text}
+            </h2>
+            <div className="text-xs text-retro-cyan opacity-75">
+              GEN {generation}
             </div>
           </div>
 
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-retro-dark bg-opacity-50 p-3 rounded">
-              <div className="font-pixel text-xs text-retro-green mb-1">
-                TOKENS PLACED
-              </div>
-              <div className="font-pixel text-xl text-retro-green text-glow">
-                {tokensPlaced}
-              </div>
+          {/* Training Results */}
+          <div className="space-y-1">
+            <div className="text-xs text-retro-yellow">
+              SURVIVAL ANALYSIS
             </div>
-
-            <div className="bg-retro-dark bg-opacity-50 p-3 rounded">
-              <div className="font-pixel text-xs text-retro-cyan mb-1">
-                CELLS SURVIVED
-              </div>
-              <div className="font-pixel text-xl text-retro-cyan text-glow">
-                {finalScore}
+            
+            {/* Survival Rate */}
+            <div className="bg-retro-purple bg-opacity-30 p-1 rounded text-xs">
+              <div className="text-retro-cyan mb-1">SURVIVAL RATE</div>
+              <div className={`text-lg ${performance.color} text-glow`}>
+                {survivalRate}%
               </div>
             </div>
-          </div>
 
-          {/* Training Tips */}
-          <div className="bg-retro-dark bg-opacity-30 p-4 rounded border border-retro-yellow">
-            <div className="font-pixel text-xs text-retro-yellow mb-2">
-              TRAINING TIP
-            </div>
-            <div className="font-pixel text-xs text-retro-cyan">
-              {survivalRate >= 60 
-                ? "Great patterns! Try different formations to explore new strategies."
-                : survivalRate >= 30 
-                ? "Focus on stable patterns like blocks and blinkers for better survival."
-                : "Try placing tokens closer together to form stable communities."
-              }
+            {/* Stats */}
+            <div className="flex gap-1">
+              <div className="flex-1 bg-retro-purple bg-opacity-30 p-1 rounded text-xs">
+                <div className="text-retro-green">PLACED: {tokensPlaced}</div>
+              </div>
+              <div className="flex-1 bg-retro-purple bg-opacity-30 p-1 rounded text-xs">
+                <div className="text-retro-cyan">SURVIVED: {finalScore}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <button
-            onClick={onPlayAgain}
-            className="retro-button w-full flex items-center justify-center gap-2 px-6 py-3 text-retro-green border-retro-green hover:bg-retro-green hover:text-retro-dark"
-          >
-            <RotateCcw size={16} />
-            TRAIN AGAIN
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-1 sm:gap-2">
+            <button
+              onMouseDown={() => setIsHidden(true)}
+              onMouseUp={() => setIsHidden(false)}
+              onMouseLeave={() => setIsHidden(false)}
+              onTouchStart={() => setIsHidden(true)}
+              onTouchEnd={() => setIsHidden(false)}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-yellow text-retro-yellow hover:bg-retro-yellow hover:text-retro-dark transition-colors select-none"
+            >
+              <Eye size={10} />
+              VIEW
+            </button>
 
-          <button
-            onClick={onMainMenu}
-            className="retro-button w-full flex items-center justify-center gap-2 px-6 py-3 text-retro-cyan border-retro-cyan hover:bg-retro-cyan hover:text-retro-dark"
-          >
-            <Home size={16} />
-            MAIN MENU
-          </button>
+            <button
+              onClick={onPlayAgain}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-green text-retro-green hover:bg-retro-green hover:text-retro-dark transition-colors"
+            >
+              <RotateCcw size={10} />
+              AGAIN
+            </button>
+
+            <button
+              onClick={onMainMenu}
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-retro-purple border border-retro-cyan text-retro-cyan hover:bg-retro-cyan hover:text-retro-dark transition-colors"
+            >
+              <Home size={10} />
+              MENU
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
+
+  // Hide the modal when the View Board button is pressed
+  if (isHidden) {
+    return null;
+  }
+
+  return createPortal(modalContent, document.body);
 };

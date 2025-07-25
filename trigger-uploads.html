@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Data Upload Manager</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .section {
+            margin: 20px 0;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .header {
+            color: #00ffff;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success { background: #1a4a1a; color: #44ff44; }
+        .error { background: #4a1a1a; color: #ff4444; }
+        .warning { background: #4a4a1a; color: #ffaa00; }
+        .info { background: #1a1a4a; color: #4444ff; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        button:hover { background: #00aa00; }
+        button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #0f0f0f;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .game-item {
+            margin: 5px 0;
+            padding: 8px;
+            background: #1a1a1a;
+            border-left: 3px solid #00ff00;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Game Data Upload Manager</h1>
+        
+        <div class="section">
+            <div class="header">📊 Upload Queue Status</div>
+            <button onclick="checkStatus()">🔍 Check Status</button>
+            <button onclick="viewPendingGames()">👁️ View Pending Games</button>
+            <div id="statusDisplay"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">📤 Upload Actions</div>
+            <button onclick="testAPIConnection()">🌐 Test API Connection</button>
+            <button onclick="retryUploads()" id="retryBtn">🔄 Retry Uploads</button>
+            <button onclick="exportToJSON()">💾 Export as JSON</button>
+            <button onclick="clearPendingGames()" style="background: #ff4444;">🗑️ Clear Pending</button>
+            <div id="uploadResults"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">🎮 Pending Games Details</div>
+            <div id="gamesDisplay"></div>
+        </div>
+
+        <div class="section">
+            <div class="header">🛠️ Manual Data Export</div>
+            <button onclick="downloadData()">⬇️ Download All Game Data</button>
+            <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            <div id="exportResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Get pending games from localStorage
+        function getPendingGames() {
+            try {
+                // Check multiple possible storage locations
+                const queue = localStorage.getItem('gameDataQueue');
+                const recorder = localStorage.getItem('gameRecorderData');
+                
+                let games = [];
+                
+                if (queue) {
+                    games = JSON.parse(queue);
+                }
+                
+                // Also check for individual game records
+                const gameRecords = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('gameRecord_')) {
+                        try {
+                            const record = JSON.parse(localStorage.getItem(key));
+                            gameRecords.push(record);
+                        } catch (e) {
+                            console.warn('Failed to parse game record:', key);
+                        }
+                    }
+                }
+                
+                return { queueGames: games, recordGames: gameRecords, recorderData: recorder };
+            } catch (error) {
+                console.error('Error getting pending games:', error);
+                return { queueGames: [], recordGames: [], recorderData: null };
+            }
+        }
+
+        function checkStatus() {
+            const statusDiv = document.getElementById('statusDisplay');
+            const data = getPendingGames();
+            
+            const totalPending = data.queueGames.length + data.recordGames.length;
+            const totalSize = [...data.queueGames, ...data.recordGames].reduce((sum, game) => {
+                return sum + (game.compressedSize || game.data?.length || 0);
+            }, 0);
+            
+            statusDiv.innerHTML = `
+                <div class="status info">
+                    📊 <strong>Upload Queue Status:</strong><br>
+                    • Queue Games: ${data.queueGames.length}<br>
+                    • Record Games: ${data.recordGames.length}<br>
+                    • Total Pending: ${totalPending}<br>
+                    • Total Data Size: ${(totalSize / 1024).toFixed(2)} KB<br>
+                    • Recorder State: ${data.recorderData ? 'Active' : 'Inactive'}
+                </div>
+            `;
+            
+            const retryBtn = document.getElementById('retryBtn');
+            retryBtn.disabled = totalPending === 0;
+        }
+
+        function viewPendingGames() {
+            const gamesDiv = document.getElementById('gamesDisplay');
+            const data = getPendingGames();
+            
+            let html = '';
+            
+            if (data.queueGames.length > 0) {
+                html += '<h3>📤 Queue Games:</h3>';
+                data.queueGames.forEach((game, index) => {
+                    html += `
+                        <div class="game-item">
+                            <strong>Queue Game ${index + 1}:</strong> ${game.gameId || 'Unknown ID'}<br>
+                            Size: ${game.compressedSize || 'Unknown'} bytes | 
+                            Hash: ${(game.gameHash || '').substring(0, 8)}... | 
+                            Time: ${new Date(game.timestamp || Date.now()).toLocaleString()}
+                        </div>
+                    `;
+                });
+            }
+            
+            if (data.recordGames.length > 0) {
+                html += '<h3>🎮 Record Games:</h3>';
+                data.recordGames.forEach((game, index) => {
+                    const winner = game.outcome?.winner;
+                    html += `
+                        <div class="game-item">
+                            <strong>Record Game ${index + 1}:</strong> ${game.gameId || 'Unknown ID'}<br>
+                            Settings: ${game.settings?.boardSize || '?'}x${game.settings?.boardSize || '?'} | 
+                            Tokens: ${game.placements?.length || 0} | 
+                            Winner: ${winner !== null ? `Player ${winner + 1}` : 'Draw'}<br>
+                            Time: ${new Date(game.timestamp || Date.now()).toLocaleString()}
+                        </div>
+                    `;
+                });
+            }
+            
+            if (html === '') {
+                html = '<div class="status warning">⚠️ No pending games found</div>';
+            }
+            
+            gamesDiv.innerHTML = html;
+        }
+
+        async function testAPIConnection() {
+            const resultsDiv = document.getElementById('uploadResults');
+            resultsDiv.innerHTML = '<div class="status info">🌐 Testing API connection...</div>';
+            
+            try {
+                const apiURL = 'http://localhost:3001/api/health';
+                const response = await fetch(apiURL, { 
+                    method: 'GET',
+                    timeout: 5000 
+                });
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = '<div class="status success">✅ API connection successful!</div>';
+                } else {
+                    resultsDiv.innerHTML = `<div class="status error">❌ API responded with error: ${response.status}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ API connection failed: ${error.message}<br>
+                        <small>This is expected - the API server isn't running. Games are stored locally instead.</small>
+                    </div>
+                `;
+            }
+        }
+
+        async function retryUploads() {
+            const resultsDiv = document.getElementById('uploadResults');
+            resultsDiv.innerHTML = '<div class="status info">🔄 Attempting to retry uploads...</div>';
+            
+            // Since the API isn't running, we'll simulate what would happen
+            const data = getPendingGames();
+            const totalGames = data.queueGames.length + data.recordGames.length;
+            
+            resultsDiv.innerHTML = `
+                <div class="status warning">
+                    ⚠️ API server not available (http://localhost:3001/api)<br>
+                    ${totalGames} games remain in local storage.<br>
+                    <small>To actually upload, you'd need to start an API server or export the data manually.</small>
+                </div>
+            `;
+        }
+
+        function exportToJSON() {
+            const data = getPendingGames();
+            const allGames = [...data.queueGames, ...data.recordGames];
+            
+            if (allGames.length === 0) {
+                document.getElementById('exportResults').innerHTML = 
+                    '<div class="status warning">⚠️ No games to export</div>';
+                return;
+            }
+            
+            // Create formatted JSON
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalGames: allGames.length,
+                games: allGames
+            };
+            
+            const jsonString = JSON.stringify(exportData, null, 2);
+            
+            // Show first 500 characters
+            const preview = jsonString.length > 500 ? jsonString.substring(0, 500) + '...' : jsonString;
+            
+            document.getElementById('exportResults').innerHTML = `
+                <div class="status success">
+                    ✅ JSON export ready (${allGames.length} games, ${(jsonString.length / 1024).toFixed(2)} KB)<br>
+                    <button onclick="downloadData()">⬇️ Download</button>
+                    <button onclick="copyToClipboard()">📋 Copy</button>
+                </div>
+                <pre>${preview}</pre>
+            `;
+            
+            // Store for download
+            window.exportedData = jsonString;
+        }
+
+        function downloadData() {
+            const data = getPendingGames();
+            const allGames = [...data.queueGames, ...data.recordGames];
+            
+            if (allGames.length === 0) {
+                alert('No games to download');
+                return;
+            }
+            
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalGames: allGames.length,
+                games: allGames
+            };
+            
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `game-of-strife-data-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('exportResults').innerHTML = 
+                '<div class="status success">✅ Download started!</div>';
+        }
+
+        function copyToClipboard() {
+            if (!window.exportedData) {
+                exportToJSON();
+                return;
+            }
+            
+            navigator.clipboard.writeText(window.exportedData).then(() => {
+                document.getElementById('exportResults').innerHTML = 
+                    '<div class="status success">✅ Copied to clipboard!</div>';
+            }).catch(err => {
+                document.getElementById('exportResults').innerHTML = 
+                    '<div class="status error">❌ Copy failed: ' + err.message + '</div>';
+            });
+        }
+
+        function clearPendingGames() {
+            if (!confirm('Are you sure you want to clear all pending game data? This cannot be undone.')) {
+                return;
+            }
+            
+            // Clear all game-related localStorage
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (
+                    key.startsWith('gameRecord_') || 
+                    key === 'gameDataQueue' || 
+                    key === 'gameRecorderData'
+                )) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            document.getElementById('uploadResults').innerHTML = `
+                <div class="status success">✅ Cleared ${keysToRemove.length} items from localStorage</div>
+            `;
+            
+            checkStatus();
+            viewPendingGames();
+        }
+
+        // Auto-check status on load
+        window.onload = function() {
+            checkStatus();
+            viewPendingGames();
+        };
+
+        console.log('🚀 Upload Manager loaded. Managing game data uploads and exports.');
+    </script>
+</body>
+</html>

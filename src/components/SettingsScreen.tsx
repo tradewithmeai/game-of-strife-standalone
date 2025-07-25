@@ -44,7 +44,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBackToMenu }) 
   const controlSchemes = ['touch', 'tilt', 'hybrid'];
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue ${getContainerClasses()} crt-effect`}>
+    <div className={`min-h-screen max-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue ${getContainerClasses()} crt-effect overflow-y-auto`}>
       {/* Header */}
       <div className={`flex items-center justify-between ${isMobile ? 'mb-6' : 'mb-8'}`}>
         <button
