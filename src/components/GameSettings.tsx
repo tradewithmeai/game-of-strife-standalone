@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Play, RotateCcw, Info, Target } from 'lucide-react';
+import { ArrowLeft, Play, RotateCcw, Info, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,6 +38,10 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
   const [survivalRules, setSurvivalRules] = useState<number[]>(currentSettings.survivalRules);
   const [enabledSuperpowers, setEnabledSuperpowers] = useState<number[]>(currentSettings.enabledSuperpowers);
   const [superpowerPercentage, setSuperpowerPercentage] = useState(currentSettings.superpowerPercentage);
+
+  // Dropdown states
+  const [showBasicSettings, setShowBasicSettings] = useState(false);
+  const [showSuperpowerSettings, setShowSuperpowerSettings] = useState(false);
 
   // Detect which preset is currently active
   const getCurrentPreset = (): string => {
@@ -175,232 +179,248 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
       </div>
 
       {/* Settings Panel */}
-      <div className="bg-retro-purple border-2 border-retro-cyan p-8 rounded-lg w-full max-w-4xl space-y-8 max-h-[70vh] overflow-y-auto">
+      <div className="bg-retro-purple border-2 border-retro-cyan p-6 rounded-lg w-full max-w-4xl space-y-6">
         
-        {/* Tokens Per Player Setting */}
-        <div className="space-y-4">
-          <Label className="font-pixel text-lg text-retro-green text-glow">
-            TOKENS PER PLAYER: {tokensPerPlayer}
-          </Label>
-          <div className="space-y-2">
-            <Slider
-              value={[tokensPerPlayer]}
-              onValueChange={(value) => setTokensPerPlayer(value[0])}
-              max={100}
-              min={10}
-              step={5}
-              className="w-full"
-            />
-            <div className="flex justify-between font-pixel text-xs text-retro-cyan">
-              <span>10</span>
-              <span>100</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Board Size Setting */}
-        <div className="space-y-4">
-          <Label className="font-pixel text-lg text-retro-yellow text-glow">
-            BOARD SIZE: {boardSize}x{boardSize}
-          </Label>
-          <div className="space-y-2">
-            <Slider
-              value={[boardSize]}
-              onValueChange={(value) => setBoardSize(value[0])}
-              max={20}
-              min={10}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between font-pixel text-xs text-retro-cyan">
-              <span>10x10</span>
-              <span>20x20</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Birth Rules Setting */}
-        <div className="space-y-4">
-          <Label className="font-pixel text-lg text-retro-green text-glow">
-            BIRTH RULES (NEIGHBORS TO CREATE LIFE)
-          </Label>
-          <div className="grid grid-cols-5 gap-2">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(neighbors => (
-              <div key={neighbors} className="flex items-center space-x-2">
-                <Checkbox 
-                  checked={birthRules.includes(neighbors)}
-                  onCheckedChange={() => toggleBirthRule(neighbors)}
-                  id={`birth-${neighbors}`}
-                />
-                <label 
-                  htmlFor={`birth-${neighbors}`}
-                  className="font-pixel text-xs text-retro-cyan cursor-pointer"
-                >
-                  {neighbors}
-                </label>
-              </div>
-            ))}
-          </div>
-          <div className="font-pixel text-xs text-retro-yellow">
-            SELECTED: {birthRules.join(', ')} | CONWAY'S: 3
-          </div>
-        </div>
-
-        {/* Survival Rules Setting */}
-        <div className="space-y-4">
-          <Label className="font-pixel text-lg text-retro-orange text-glow">
-            SURVIVAL RULES (NEIGHBORS TO STAY ALIVE)
-          </Label>
-          <div className="grid grid-cols-5 gap-2">
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(neighbors => (
-              <div key={neighbors} className="flex items-center space-x-2">
-                <Checkbox 
-                  checked={survivalRules.includes(neighbors)}
-                  onCheckedChange={() => toggleSurvivalRule(neighbors)}
-                  id={`survival-${neighbors}`}
-                />
-                <label 
-                  htmlFor={`survival-${neighbors}`}
-                  className="font-pixel text-xs text-retro-cyan cursor-pointer"
-                >
-                  {neighbors}
-                </label>
-              </div>
-            ))}
-          </div>
-          <div className="font-pixel text-xs text-retro-yellow">
-            SELECTED: {survivalRules.join(', ')} | CONWAY'S: 2, 3
-          </div>
-        </div>
-
-        {/* Superpower Percentage */}
-        <div className="space-y-4">
-          <Label className="font-pixel text-lg text-retro-pink text-glow">
-            SUPERPOWER SPAWN RATE: {superpowerPercentage}%
-          </Label>
-          <div className="space-y-2">
-            <Slider
-              value={[superpowerPercentage]}
-              onValueChange={(value) => setSuperpowerPercentage(value[0])}
-              max={50}
-              min={0}
-              step={5}
-              className="w-full"
-            />
-            <div className="flex justify-between font-pixel text-xs text-retro-cyan">
-              <span>0%</span>
-              <span>50%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Superpower Selection */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label className="font-pixel text-lg text-retro-cyan text-glow">
-              SUPERPOWER TYPES
-            </Label>
-            <Info size={16} className="text-retro-yellow" />
-          </div>
-          
-          {/* Preset Buttons */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              onClick={() => setSuperpowerPreset('all')}
-              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'all' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
-            >
-              ALL POWERS
-            </button>
-            <button
-              onClick={() => setSuperpowerPreset('defensive')}
-              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'defensive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
-            >
-              DEFENSIVE
-            </button>
-            <button
-              onClick={() => setSuperpowerPreset('aggressive')}
-              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'aggressive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
-            >
-              AGGRESSIVE
-            </button>
-            <button
-              onClick={() => setSuperpowerPreset('random')}
-              className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'random' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
-            >
-              RANDOM
-            </button>
-            <button
-              onClick={() => setSuperpowerPreset('none')}
-              className={`retro-button px-3 py-1 text-xs text-retro-red ${getCurrentPreset() === 'none' ? 'bg-retro-red text-retro-dark border-retro-red' : ''}`}
-            >
-              NONE
-            </button>
-            {getCurrentPreset() === 'custom' && (
-              <span className="retro-button px-3 py-1 text-xs text-retro-yellow bg-retro-yellow/20 border-retro-yellow">
-                CUSTOM
+        {/* Basic Game Settings Dropdown */}
+        <div className="border border-retro-cyan rounded-lg">
+          <button
+            onClick={() => setShowBasicSettings(!showBasicSettings)}
+            className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
+          >
+            <span className="font-pixel text-lg text-retro-green text-glow">
+              GAME SETTINGS
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-pixel text-sm text-retro-cyan">
+                {tokensPerPlayer} tokens • {boardSize}×{boardSize} board • {superpowerPercentage}% powers
               </span>
-            )}
-          </div>
-
-          {/* Superpower Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {SUPERPOWER_TYPES.map(superpower => (
-              <div key={superpower.id} className="flex items-center space-x-3 p-3 bg-retro-dark border border-retro-cyan rounded">
-                <Checkbox 
-                  checked={enabledSuperpowers.includes(superpower.id)}
-                  onCheckedChange={() => toggleSuperpower(superpower.id)}
-                  id={`superpower-${superpower.id}`}
-                />
-                <div className={`w-4 h-4 ${superpower.color} border border-retro-cyan`} />
-                <div className="flex-1">
-                  <label 
-                    htmlFor={`superpower-${superpower.id}`}
-                    className="font-pixel text-xs text-retro-cyan cursor-pointer block"
-                  >
-                    {superpower.name}
-                  </label>
-                  <div className="font-pixel text-xs text-retro-yellow opacity-80">
-                    {superpower.description}
+              {showBasicSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
+            </div>
+          </button>
+          
+          {showBasicSettings && (
+            <div className="p-4 space-y-6 bg-retro-dark/50">
+              {/* Tokens Per Player Setting */}
+              <div className="space-y-4">
+                <Label className="font-pixel text-lg text-retro-green text-glow">
+                  TOKENS PER PLAYER: {tokensPerPlayer}
+                </Label>
+                <div className="space-y-2">
+                  <Slider
+                    value={[tokensPerPlayer]}
+                    onValueChange={(value) => setTokensPerPlayer(value[0])}
+                    max={100}
+                    min={10}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between font-pixel text-xs text-retro-cyan">
+                    <span>10</span>
+                    <span>100</span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-          
-          <div className="font-pixel text-xs text-retro-yellow text-center">
-            {enabledSuperpowers.length} OF 7 SUPERPOWERS ENABLED
-            {enabledSuperpowers.length === 0 && " | ALL CELLS WILL BE NORMAL"}
-          </div>
+
+              {/* Board Size Setting */}
+              <div className="space-y-4">
+                <Label className="font-pixel text-lg text-retro-yellow text-glow">
+                  BOARD SIZE: {boardSize}x{boardSize}
+                </Label>
+                <div className="space-y-2">
+                  <Slider
+                    value={[boardSize]}
+                    onValueChange={(value) => setBoardSize(value[0])}
+                    max={20}
+                    min={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between font-pixel text-xs text-retro-cyan">
+                    <span>10x10</span>
+                    <span>20x20</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Superpower Percentage */}
+              <div className="space-y-4">
+                <Label className="font-pixel text-lg text-retro-pink text-glow">
+                  SUPERPOWER SPAWN RATE: {superpowerPercentage}%
+                </Label>
+                <div className="space-y-2">
+                  <Slider
+                    value={[superpowerPercentage]}
+                    onValueChange={(value) => setSuperpowerPercentage(value[0])}
+                    max={50}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between font-pixel text-xs text-retro-cyan">
+                    <span>0%</span>
+                    <span>50%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Game Preview Info */}
-        <div className="bg-retro-dark border border-retro-cyan p-4 rounded space-y-2">
-          <div className="font-pixel text-xs text-retro-cyan text-center mb-2">
-            GAME PREVIEW - 2 PLAYER BATTLE
-          </div>
-          <div className="grid grid-cols-2 gap-4 font-pixel text-xs">
-            <div className="text-retro-green">
-              <div>PLAYER 1 TOKENS:</div>
-              <div className="text-lg">{tokensPerPlayer}</div>
+        {/* Advanced Rules Dropdown */}
+        <div className="border border-retro-orange rounded-lg">
+          <button
+            onClick={() => setShowSuperpowerSettings(!showSuperpowerSettings)}
+            className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
+          >
+            <span className="font-pixel text-lg text-retro-orange text-glow">
+              RULES & SUPERPOWERS
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-pixel text-sm text-retro-cyan">
+                Birth: {birthRules.join(',')} • Survive: {survivalRules.join(',')} • {enabledSuperpowers.length}/7 powers
+              </span>
+              {showSuperpowerSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
             </div>
-            <div className="text-retro-green">
-              <div>PLAYER 2 TOKENS:</div>
-              <div className="text-lg">{tokensPerPlayer}</div>
+          </button>
+          
+          {showSuperpowerSettings && (
+            <div className="p-4 space-y-6 bg-retro-dark/50">
+              {/* Birth Rules Setting */}
+              <div className="space-y-4">
+                <Label className="font-pixel text-lg text-retro-green text-glow">
+                  BIRTH RULES (NEIGHBORS TO CREATE LIFE)
+                </Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(neighbors => (
+                    <div key={neighbors} className="flex items-center space-x-2">
+                      <Checkbox 
+                        checked={birthRules.includes(neighbors)}
+                        onCheckedChange={() => toggleBirthRule(neighbors)}
+                        id={`birth-${neighbors}`}
+                      />
+                      <label 
+                        htmlFor={`birth-${neighbors}`}
+                        className="font-pixel text-xs text-retro-cyan cursor-pointer"
+                      >
+                        {neighbors}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="font-pixel text-xs text-retro-yellow">
+                  SELECTED: {birthRules.join(', ')} | CONWAY'S: 3
+                </div>
+              </div>
+
+              {/* Survival Rules Setting */}
+              <div className="space-y-4">
+                <Label className="font-pixel text-lg text-retro-orange text-glow">
+                  SURVIVAL RULES (NEIGHBORS TO STAY ALIVE)
+                </Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(neighbors => (
+                    <div key={neighbors} className="flex items-center space-x-2">
+                      <Checkbox 
+                        checked={survivalRules.includes(neighbors)}
+                        onCheckedChange={() => toggleSurvivalRule(neighbors)}
+                        id={`survival-${neighbors}`}
+                      />
+                      <label 
+                        htmlFor={`survival-${neighbors}`}
+                        className="font-pixel text-xs text-retro-cyan cursor-pointer"
+                      >
+                        {neighbors}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="font-pixel text-xs text-retro-yellow">
+                  SELECTED: {survivalRules.join(', ')} | CONWAY'S: 2, 3
+                </div>
+              </div>
+
+              {/* Superpower Selection */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Label className="font-pixel text-lg text-retro-cyan text-glow">
+                    SUPERPOWER TYPES
+                  </Label>
+                  <Info size={16} className="text-retro-yellow" />
+                </div>
+                
+                {/* Preset Buttons */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    onClick={() => setSuperpowerPreset('all')}
+                    className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'all' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
+                  >
+                    ALL POWERS
+                  </button>
+                  <button
+                    onClick={() => setSuperpowerPreset('defensive')}
+                    className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'defensive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
+                  >
+                    DEFENSIVE
+                  </button>
+                  <button
+                    onClick={() => setSuperpowerPreset('aggressive')}
+                    className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'aggressive' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
+                  >
+                    AGGRESSIVE
+                  </button>
+                  <button
+                    onClick={() => setSuperpowerPreset('random')}
+                    className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'random' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
+                  >
+                    RANDOM
+                  </button>
+                  <button
+                    onClick={() => setSuperpowerPreset('none')}
+                    className={`retro-button px-3 py-1 text-xs text-retro-red ${getCurrentPreset() === 'none' ? 'bg-retro-red text-retro-dark border-retro-red' : ''}`}
+                  >
+                    NONE
+                  </button>
+                  {getCurrentPreset() === 'custom' && (
+                    <span className="retro-button px-3 py-1 text-xs text-retro-yellow bg-retro-yellow/20 border-retro-yellow">
+                      CUSTOM
+                    </span>
+                  )}
+                </div>
+
+                {/* Superpower Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  {SUPERPOWER_TYPES.map(superpower => (
+                    <div key={superpower.id} className="flex items-center space-x-3 p-3 bg-retro-dark border border-retro-cyan rounded">
+                      <Checkbox 
+                        checked={enabledSuperpowers.includes(superpower.id)}
+                        onCheckedChange={() => toggleSuperpower(superpower.id)}
+                        id={`superpower-${superpower.id}`}
+                      />
+                      <div className={`w-4 h-4 ${superpower.color} border border-retro-cyan`} />
+                      <div className="flex-1">
+                        <label 
+                          htmlFor={`superpower-${superpower.id}`}
+                          className="font-pixel text-xs text-retro-cyan cursor-pointer block"
+                        >
+                          {superpower.name}
+                        </label>
+                        <div className="font-pixel text-xs text-retro-yellow opacity-80">
+                          {superpower.description}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="font-pixel text-xs text-retro-yellow text-center">
+                  {enabledSuperpowers.length} OF 7 SUPERPOWERS ENABLED
+                  {enabledSuperpowers.length === 0 && " | ALL CELLS WILL BE NORMAL"}
+                </div>
+              </div>
             </div>
-            <div className="text-retro-yellow col-span-2">
-              <div>BATTLEFIELD SIZE:</div>
-              <div className="text-lg">{boardSize} x {boardSize} CELLS</div>
-            </div>
-            <div className="text-retro-cyan col-span-2">
-              <div>LIFE RULES:</div>
-              <div className="text-xs">BIRTH: {birthRules.join(',')} | SURVIVE: {survivalRules.join(',')}</div>
-            </div>
-            <div className="text-retro-pink col-span-2">
-              <div>SUPERPOWERS:</div>
-              <div className="text-xs">{superpowerPercentage}% SPAWN | {enabledSuperpowers.length}/7 TYPES</div>
-            </div>
-          </div>
+          )}
         </div>
+
 
         {/* Game Mode Buttons */}
         <div className="space-y-3">
