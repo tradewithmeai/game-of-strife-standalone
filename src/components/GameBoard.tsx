@@ -1,8 +1,7 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-// Temporarily commented out to test if these are causing the blank screen
-// import { useOrientation } from '@/hooks/useOrientation';
-// import { useFullscreen } from '@/hooks/useFullscreen';
+import { useOrientation } from '@/hooks/useOrientation';
+import { useFullscreen } from '@/hooks/useFullscreen';
 
 export interface Cell {
   player: number | null; // 0 for player 1, 1 for player 2, null for empty
@@ -40,16 +39,49 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const boardRef = useRef<HTMLDivElement>(null);
   const lastPlacedCell = useRef<string | null>(null);
   
-  // Temporarily disabled hooks to test if they're causing the blank screen
-  // const { isLandscape } = useOrientation();
-  // const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
-  const isLandscape = false;
-  const isFullscreen = false;
+  // Hooks for orientation and fullscreen (now with error handling)
+  const { isLandscape } = useOrientation();
+  const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
+
+  // Auto-enter fullscreen when in landscape during gameplay
+  useEffect(() => {
+    if (fullscreen && isLandscape && !isFullscreen) {
+      console.log('🎯 Entering landscape fullscreen mode');
+      enterFullscreen();
+    } else if (fullscreen && !isLandscape && isFullscreen) {
+      console.log('🎯 Exiting landscape fullscreen mode');
+      exitFullscreen();
+    }
+  }, [fullscreen, isLandscape, isFullscreen, enterFullscreen, exitFullscreen]);
+
+  // Double-tap to exit fullscreen in landscape mode
+  const [lastTap, setLastTap] = useState<number>(0);
   const [showIndicator, setShowIndicator] = useState(false);
 
   const handleDoubleTap = useCallback(() => {
-    // Temporarily disabled
-  }, []);
+    const now = Date.now();
+    const timeDiff = now - lastTap;
+    
+    if (timeDiff < 300 && timeDiff > 0) {
+      // Double tap detected - exit fullscreen
+      if (isLandscape && isFullscreen) {
+        console.log('🎯 Double-tap detected - exiting fullscreen');
+        exitFullscreen();
+      }
+    }
+    setLastTap(now);
+  }, [lastTap, isLandscape, isFullscreen, exitFullscreen]);
+
+  // Show indicator for landscape fullscreen, hide after 3 seconds
+  useEffect(() => {
+    if (isLandscapeFullscreen) {
+      setShowIndicator(true);
+      const timer = setTimeout(() => setShowIndicator(false), 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowIndicator(false);
+    }
+  }, [isLandscapeFullscreen]);
 
   // Get cell coordinates from mouse/touch position with expanded hit areas
   const getCellFromPosition = useCallback((clientX: number, clientY: number): {row: number, col: number} | null => {

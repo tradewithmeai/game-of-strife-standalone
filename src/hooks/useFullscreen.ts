@@ -4,6 +4,8 @@ export const useFullscreen = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const enterFullscreen = useCallback(async () => {
+    if (typeof document === 'undefined') return;
+    
     try {
       const element = document.documentElement;
       
@@ -18,10 +20,13 @@ export const useFullscreen = () => {
       }
     } catch (error) {
       console.warn('Could not enter fullscreen:', error);
+      // Don't throw - just gracefully fail
     }
   }, []);
 
   const exitFullscreen = useCallback(async () => {
+    if (typeof document === 'undefined') return;
+    
     try {
       if (document.exitFullscreen) {
         await document.exitFullscreen();
@@ -34,6 +39,7 @@ export const useFullscreen = () => {
       }
     } catch (error) {
       console.warn('Could not exit fullscreen:', error);
+      // Don't throw - just gracefully fail
     }
   }, []);
 
@@ -46,27 +52,42 @@ export const useFullscreen = () => {
   }, [isFullscreen, enterFullscreen, exitFullscreen]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+
     const handleFullscreenChange = () => {
-      const fullscreenElement = 
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement;
-        
-      setIsFullscreen(!!fullscreenElement);
+      try {
+        const fullscreenElement = 
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement;
+          
+        setIsFullscreen(!!fullscreenElement);
+      } catch (error) {
+        console.warn('Error checking fullscreen state:', error);
+        setIsFullscreen(false);
+      }
     };
 
-    // Listen for fullscreen changes
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    // Listen for fullscreen changes with error handling
+    try {
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    } catch (error) {
+      console.warn('Error setting up fullscreen listeners:', error);
+    }
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      try {
+        document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      } catch (error) {
+        console.warn('Error cleaning up fullscreen listeners:', error);
+      }
     };
   }, []);
 
