@@ -265,8 +265,8 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
     }
   }, [gameStage, showVictory, calculateFinalScores, board, generation, winner, saveGame, gameSettings, gameState]);
 
-  // Use fullscreen mode during placement and simulation for mobile
-  const useFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
+  // Use fullscreen mode during placement and simulation for mobile  
+  const shouldUseFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
   
   // Special handling for player transition - keep fullscreen but show transition modal
   if (showPlayerTransition) {
@@ -287,7 +287,7 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
     );
   }
   
-  if (useFullscreen) {
+  if (shouldUseFullscreen) {
     return (
       <>
         {/* Fullscreen Game Board */}

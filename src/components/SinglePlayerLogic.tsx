@@ -200,9 +200,9 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
   }, [gameStage, showVictory, calculateFinalScore, board, generation, saveGame, gameSettings, tokensPlaced, initialBoardState]);
 
   // Use fullscreen mode during placement and simulation for mobile
-  const useFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
+  const shouldUseFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
   
-  if (useFullscreen) {
+  if (shouldUseFullscreen) {
     return (
       <>
         {/* Fullscreen Game Board */}
