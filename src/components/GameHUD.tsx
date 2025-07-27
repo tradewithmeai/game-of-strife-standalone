@@ -60,11 +60,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     }
   };
 
-  const getRulesText = () => {
-    const enabledCount = enabledSuperpowers.length;
-    const spawnRate = Math.round(superpowerPercentage);
-    return `B${birthRules.join('')}/S${survivalRules.join('')} | ${spawnRate}% SUPER (${enabledCount}/7)`;
-  };
+  // Removed development-only rules display
 
   const getGameModeText = () => {
     return gameMode === 'training' ? 'TRAINING' : '2P';
@@ -85,24 +81,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {getStageText()}
         </div>
         <div className="font-pixel text-xs text-retro-cyan mt-1">
-          {boardSize}x{boardSize} | {tokensPerPlayer} TOKENS | {getGameModeText()} | {getRulesText()}
+          {getGameModeText()} MODE
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Recording Status */}
-        {recordingStatus && (
-          <GameRecordingStatus
-            isRecording={recordingStatus.isRecording}
-            movesRecorded={recordingStatus.movesRecorded}
-            snapshotsRecorded={recordingStatus.snapshotsRecorded}
-            pendingUploads={recordingStatus.pendingUploads}
-            isUploading={recordingStatus.isUploading}
-            connectionStatus={recordingStatus.connectionStatus}
-            totalGamesRecorded={recordingStatus.totalGamesRecorded}
-            className="mr-2"
-          />
-        )}
+        {/* Removed development recording status display */}
         
         {gameStage !== 'placement' && gameStage !== 'finished' && (
           <button

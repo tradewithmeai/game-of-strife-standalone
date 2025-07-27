@@ -256,6 +256,25 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   // Use fullscreen mode during placement and simulation for mobile
   const useFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
   
+  // Special handling for player transition - keep fullscreen but show transition modal
+  if (showPlayerTransition) {
+    return (
+      <>
+        {/* Fullscreen Game Board */}
+        <GameBoard
+          board={board}
+          onCellClick={handleCellClick}
+          isPlacementStage={gameStage === 'placement'}
+          selectedCell={null}
+          fullscreen={true}
+        />
+        
+        {/* Player Transition Countdown */}
+        <PlayerTransitionCountdown onTransitionComplete={handlePlayerTransitionComplete} />
+      </>
+    );
+  }
+  
   if (useFullscreen) {
     return (
       <>
@@ -347,15 +366,6 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
         onBackToMenu={onBackToMenu}
         onToggleSimulation={toggleSimulation}
         onResetGame={handleResetGame}
-        recordingStatus={{
-          isRecording: false,
-          movesRecorded: 0,
-          snapshotsRecorded: 0,
-          pendingUploads: 0,
-          isUploading: false,
-          connectionStatus: 'connected' as const,
-          totalGamesRecorded: 0
-        }}
       />
 
       {/* Phase Indicator */}

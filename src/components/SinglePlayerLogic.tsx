@@ -286,15 +286,6 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
         onBackToMenu={onBackToMenu}
         onToggleSimulation={toggleSimulation}
         onResetGame={handleResetGame}
-        recordingStatus={{
-          isRecording: false,
-          movesRecorded: 0,
-          snapshotsRecorded: 0,
-          pendingUploads: 0,
-          isUploading: false,
-          connectionStatus: 'connected' as const,
-          totalGamesRecorded: 0
-        }}
       />
 
       {/* Phase Indicator for Single Player */}
