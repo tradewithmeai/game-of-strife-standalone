@@ -187,6 +187,41 @@
       width: min(90vh, 90vw) !important;
       height: min(90vh, 90vw) !important;
     }
+    
+    /* True fullscreen mode for landscape */
+    .landscape-fullscreen-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    
+    .landscape-fullscreen-board {
+      width: min(95vh, 95vw) !important;
+      height: min(95vh, 95vw) !important;
+      margin: 0 !important;
+      padding: 2px !important;
+    }
+    
+    /* Hide UI overlay in true fullscreen landscape */
+    .landscape-fullscreen-container .fullscreen-ui-overlay {
+      display: none;
+    }
+  }
+  
+  /* Fullscreen API styles */
+  :fullscreen .landscape-fullscreen-container,
+  :-webkit-full-screen .landscape-fullscreen-container,
+  :-moz-full-screen .landscape-fullscreen-container,
+  :-ms-fullscreen .landscape-fullscreen-container {
+    width: 100vw;
+    height: 100vh;
   }
 
   /* Battle intensity background */
