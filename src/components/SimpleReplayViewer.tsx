@@ -143,75 +143,31 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
 
   return (
     <div className="min-h-screen bg-retro-dark text-retro-cyan flex flex-col">
-      {/* Header */}
-      <div className="bg-retro-purple border-b border-retro-cyan p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 px-4 py-2 bg-retro-purple text-retro-cyan border border-retro-cyan hover:bg-retro-cyan hover:text-retro-dark transition-colors"
-            >
-              <ArrowLeft size={16} />
-              BACK
-            </button>
-            <h1 className="text-xl font-pixel">REPLAY: {game.gameMode.toUpperCase()}</h1>
-          </div>
-          <div className="text-sm text-retro-gray">
-            {new Date(game.timestamp).toLocaleString()}
-          </div>
-        </div>
+      {/* Minimal overlay controls */}
+      <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="retro-button text-xs px-3 py-2"
+        >
+          ← BACK
+        </button>
+        
+        <button
+          onClick={handlePlayPause}
+          className="retro-button text-xs px-3 py-2"
+        >
+          {isPlaying ? '⏸️ PAUSE' : '▶️ PLAY'}
+        </button>
       </div>
 
-      {/* Controls */}
-      <div className="bg-retro-dark border-b border-retro-purple p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handlePlayPause}
-              className="flex items-center gap-2 px-4 py-2 bg-retro-purple text-retro-cyan border border-retro-cyan hover:bg-retro-cyan hover:text-retro-dark transition-colors"
-            >
-              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-              {isPlaying ? 'PAUSE' : 'PLAY'}
-            </button>
-
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-4 py-2 bg-retro-dark text-retro-cyan border border-retro-cyan hover:bg-retro-cyan hover:text-retro-dark transition-colors"
-            >
-              <RotateCcw size={16} />
-              RESET
-            </button>
-          </div>
-
-          <div className="text-sm">
-            <span className="text-retro-cyan">Generation: {generation}</span>
-            {isComplete && <span className="ml-4 text-retro-green">✓ COMPLETE</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Game Info */}
-      <div className="bg-retro-purple border-b border-retro-cyan px-4 py-2">
-        <div className="flex items-center justify-between text-sm">
-          <div>
-            Board: {game.settings.boardSize}×{game.settings.boardSize} | 
-            Tokens: {game.initialBoard.length} | 
-            Rules: B{game.settings.birthRules.join('')}/S{game.settings.survivalRules.join('')}
-          </div>
-          <div>
-            Result: {game.result.winner === null ? 'Draw' : `Player ${game.result.winner + 1} Won`} 
-            ({game.result.player1Score}-{game.result.player2Score})
-          </div>
-        </div>
-      </div>
-
-      {/* Game Board */}
-      <div className="flex-1 p-4">
+      {/* Fullscreen Game Board */}
+      <div className="flex-1 flex items-center justify-center bg-retro-dark">
         <GameBoard
           board={currentBoard}
           onCellClick={() => {}}
           isPlacementStage={false}
           selectedCell={null}
+          fullscreen={true}
         />
       </div>
     </div>
