@@ -9,7 +9,8 @@
       "Bash(timeout 30 git push origin master)",
       "Bash(npm run build:*)",
       "Bash(pkill:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(timeout 10 git push origin master)"
     ],
     "deny": []
   }

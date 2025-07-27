@@ -144,17 +144,17 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
   return (
     <div className="min-h-screen bg-retro-dark text-retro-cyan flex flex-col">
       {/* Minimal overlay controls */}
-      <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
+      <div className="absolute top-4 left-4 right-4 z-[9999] flex items-center justify-between pointer-events-none">
         <button
           onClick={onBack}
-          className="retro-button text-xs px-3 py-2"
+          className="retro-button text-xs px-3 py-2 pointer-events-auto"
         >
           ← BACK
         </button>
         
         <button
           onClick={handlePlayPause}
-          className="retro-button text-xs px-3 py-2"
+          className="retro-button text-xs px-3 py-2 pointer-events-auto"
         >
           {isPlaying ? '⏸️ PAUSE' : '▶️ PLAY'}
         </button>
