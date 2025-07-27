@@ -41,6 +41,7 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
 
   // Dropdown states
   const [showBasicSettings, setShowBasicSettings] = useState(false);
+  const [showGameLogic, setShowGameLogic] = useState(false);
   const [showSuperpowerSettings, setShowSuperpowerSettings] = useState(false);
 
   // Detect which preset is currently active
@@ -266,24 +267,24 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
           )}
         </div>
 
-        {/* Advanced Rules Dropdown */}
+        {/* Game Logic Rules Dropdown */}
         <div className="border border-retro-orange rounded-lg">
           <button
-            onClick={() => setShowSuperpowerSettings(!showSuperpowerSettings)}
+            onClick={() => setShowGameLogic(!showGameLogic)}
             className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
           >
             <span className="font-pixel text-lg text-retro-orange text-glow">
-              RULES & SUPERPOWERS
+              GAME LOGIC
             </span>
             <div className="flex items-center gap-3">
               <span className="font-pixel text-sm text-retro-cyan">
-                Birth: {birthRules.join(',')} • Survive: {survivalRules.join(',')} • {enabledSuperpowers.length}/7 powers
+                Birth: {birthRules.join(',')} • Survive: {survivalRules.join(',')}
               </span>
-              {showSuperpowerSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
+              {showGameLogic ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
             </div>
           </button>
           
-          {showSuperpowerSettings && (
+          {showGameLogic && (
             <div className="p-4 space-y-6 bg-retro-dark/50">
               {/* Birth Rules Setting */}
               <div className="space-y-4">
@@ -338,18 +339,36 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
                   SELECTED: {survivalRules.join(', ')} | CONWAY'S: 2, 3
                 </div>
               </div>
+            </div>
+          )}
+        </div>
 
-              {/* Superpower Selection */}
+        {/* Superpowers Dropdown */}
+        <div className="border border-retro-cyan rounded-lg">
+          <button
+            onClick={() => setShowSuperpowerSettings(!showSuperpowerSettings)}
+            className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
+          >
+            <span className="font-pixel text-lg text-retro-cyan text-glow">
+              SUPERPOWERS
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-pixel text-sm text-retro-cyan">
+                {enabledSuperpowers.length}/7 types enabled • {getCurrentPreset().toUpperCase()} preset
+              </span>
+              {showSuperpowerSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
+            </div>
+          </button>
+          
+          {showSuperpowerSettings && (
+            <div className="p-4 space-y-6 bg-retro-dark/50">
+
+              {/* Preset Buttons */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Label className="font-pixel text-lg text-retro-cyan text-glow">
-                    SUPERPOWER TYPES
-                  </Label>
-                  <Info size={16} className="text-retro-yellow" />
-                </div>
-                
-                {/* Preset Buttons */}
-                <div className="flex flex-wrap gap-2 mb-4">
+                <Label className="font-pixel text-lg text-retro-cyan text-glow">
+                  SUPERPOWER PRESETS
+                </Label>
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSuperpowerPreset('all')}
                     className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'all' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
@@ -386,7 +405,17 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
                     </span>
                   )}
                 </div>
+              </div>
 
+              {/* Individual Superpower Selection */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Label className="font-pixel text-lg text-retro-cyan text-glow">
+                    INDIVIDUAL SUPERPOWERS
+                  </Label>
+                  <Info size={16} className="text-retro-yellow" />
+                </div>
+                
                 {/* Superpower Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   {SUPERPOWER_TYPES.map(superpower => (
@@ -420,7 +449,6 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
             </div>
           )}
         </div>
-
 
         {/* Game Mode Buttons */}
         <div className="space-y-3">
