@@ -1,7 +1,5 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { useOrientation } from '@/hooks/useOrientation';
-import { useFullscreen } from '@/hooks/useFullscreen';
 
 export interface Cell {
   player: number | null; // 0 for player 1, 1 for player 2, null for empty
@@ -39,49 +37,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const boardRef = useRef<HTMLDivElement>(null);
   const lastPlacedCell = useRef<string | null>(null);
   
-  // Hooks for orientation and fullscreen (now with error handling)
-  const { isLandscape } = useOrientation();
-  const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
-
-  // Auto-enter fullscreen when in landscape during gameplay
-  useEffect(() => {
-    if (fullscreen && isLandscape && !isFullscreen) {
-      console.log('🎯 Entering landscape fullscreen mode');
-      enterFullscreen();
-    } else if (fullscreen && !isLandscape && isFullscreen) {
-      console.log('🎯 Exiting landscape fullscreen mode');
-      exitFullscreen();
-    }
-  }, [fullscreen, isLandscape, isFullscreen, enterFullscreen, exitFullscreen]);
-
-  // Double-tap to exit fullscreen in landscape mode
-  const [lastTap, setLastTap] = useState<number>(0);
-  const [showIndicator, setShowIndicator] = useState(false);
-
-  const handleDoubleTap = useCallback(() => {
-    const now = Date.now();
-    const timeDiff = now - lastTap;
-    
-    if (timeDiff < 300 && timeDiff > 0) {
-      // Double tap detected - exit fullscreen
-      if (isLandscape && isFullscreen) {
-        console.log('🎯 Double-tap detected - exiting fullscreen');
-        exitFullscreen();
-      }
-    }
-    setLastTap(now);
-  }, [lastTap, isLandscape, isFullscreen, exitFullscreen]);
-
-  // Show indicator for landscape fullscreen, hide after 3 seconds
-  useEffect(() => {
-    if (isLandscapeFullscreen) {
-      setShowIndicator(true);
-      const timer = setTimeout(() => setShowIndicator(false), 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setShowIndicator(false);
-    }
-  }, [isLandscapeFullscreen]);
+  // Removed landscape fullscreen functionality to restore core game functionality
 
   // Get cell coordinates from mouse/touch position with expanded hit areas
   const getCellFromPosition = useCallback((clientX: number, clientY: number): {row: number, col: number} | null => {
@@ -287,18 +243,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [onCellClick, isPlacementStage, dragStarted]);
 
-  // Dynamic classes based on fullscreen and landscape mode
-  const isLandscapeFullscreen = fullscreen && isLandscape && isFullscreen;
-  
-  const containerClass = isLandscapeFullscreen
-    ? "landscape-fullscreen-container"
-    : fullscreen 
+  // Simplified fullscreen classes (no landscape-specific logic)
+  const containerClass = fullscreen 
     ? "fullscreen-game-container"
     : "game-screen p-2 bg-retro-dark overflow-hidden";
 
-  const boardClass = isLandscapeFullscreen
-    ? "grid gap-0.5 border-2 border-retro-cyan landscape-fullscreen-board"
-    : fullscreen
+  const boardClass = fullscreen
     ? "grid gap-0.5 border-2 border-retro-cyan fullscreen-game-board"
     : "grid gap-0.5 mx-auto p-1 border-2 border-retro-purple";
 
@@ -321,13 +271,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       };
 
   return (
-    <div className={containerClass} onClick={handleDoubleTap}>
-      {/* Landscape fullscreen indicator */}
-      {isLandscapeFullscreen && showIndicator && (
-        <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded font-pixel z-[10001] animate-fade-in">
-          Double-tap to exit fullscreen
-        </div>
-      )}
+    <div className={containerClass}>
       
       <div 
         ref={boardRef}
