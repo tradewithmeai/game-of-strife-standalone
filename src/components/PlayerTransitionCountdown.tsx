@@ -21,7 +21,7 @@ export const PlayerTransitionCountdown: React.FC<PlayerTransitionCountdownProps>
   }, [countdown, onTransitionComplete]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[9999]">
       <div className="bg-retro-purple border-4 border-retro-cyan p-8 rounded-lg text-center animate-pulse">
         <div className="font-pixel text-2xl text-retro-cyan text-glow mb-4">
           PLAYER 2 START

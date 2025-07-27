@@ -157,7 +157,9 @@ export const SinglePlayerLogic: React.FC<SinglePlayerLogicProps> = ({ onBackToMe
   
   // Check if player finished placing tokens
   useEffect(() => {
+    console.log('🎯 SinglePlayer state check:', { player1Tokens, gameStage, showCountdown });
     if (player1Tokens === 0 && gameStage === 'placement' && !showCountdown) {
+      console.log('🎯 Triggering single player simulation countdown');
       setShowCountdown(true);
     }
   }, [player1Tokens, gameStage, showCountdown]);

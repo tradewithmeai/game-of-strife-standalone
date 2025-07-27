@@ -109,6 +109,7 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   };
 
   const handleCountdownComplete = useCallback(() => {
+    console.log('🎯 Countdown completed - starting simulation');
     // Capture initial board state before simulation starts
     setInitialBoardState(board.map(row => row.map(cell => ({ ...cell }))));
     
@@ -181,6 +182,7 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   };
 
   const handlePlayerTransitionComplete = () => {
+    console.log('🎯 Player transition completed - setting current player to 1');
     setShowPlayerTransition(false);
     setCurrentPlayer(1);
   };
@@ -189,14 +191,24 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
   useEffect(() => {
     if (gameStage !== 'placement') return;
     
+    console.log('🎯 Game state check:', { 
+      currentPlayer, 
+      player1Tokens, 
+      player2Tokens, 
+      showPlayerTransition, 
+      showCountdown 
+    });
+    
     // Show transition screen when player 1 finishes
     if (currentPlayer === 0 && player1Tokens === 0 && !showPlayerTransition) {
+      console.log('🎯 Triggering player transition countdown');
       setShowPlayerTransition(true);
       return;
     }
     
     // Start countdown when both players are done
     if (player1Tokens === 0 && player2Tokens === 0 && !showCountdown && !showPlayerTransition) {
+      console.log('🎯 Triggering simulation countdown');
       setShowCountdown(true);
     }
   }, [currentPlayer, player1Tokens, player2Tokens, gameStage, showCountdown, showPlayerTransition]);
