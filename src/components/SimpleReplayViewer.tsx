@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RotateCcw, ArrowLeft } from 'lucide-react';
 import { StoredGame } from '@/types/gameStorage';
 import { Cell, GameBoard } from '@/components/GameBoard';
+import { VictoryModal } from '@/components/VictoryModal';
+import { SinglePlayerVictoryModal } from '@/components/SinglePlayerVictoryModal';
 
 interface SimpleReplayViewerProps {
   game: StoredGame;
@@ -14,6 +16,7 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
   const [isPlaying, setIsPlaying] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [showVictory, setShowVictory] = useState(false);
 
   // Create initial board from stored positions
   const createInitialBoard = useCallback((): Cell[][] => {
@@ -47,6 +50,7 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
     setCurrentBoard(createInitialBoard());
     setGeneration(0);
     setIsComplete(false);
+    setShowVictory(false);
   }, [createInitialBoard]);
 
   // Conway's Game of Life simulation
@@ -120,6 +124,8 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
           if (nextGen >= 100) { // Max generations
             setIsPlaying(false);
             setIsComplete(true);
+            // Show victory modal after a brief delay
+            setTimeout(() => setShowVictory(true), 500);
           }
           return nextGen;
         });
@@ -139,6 +145,15 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
     setGeneration(0);
     setIsPlaying(false);
     setIsComplete(false);
+    setShowVictory(false);
+  };
+
+  const handlePlayAgain = () => {
+    handleReset();
+  };
+
+  const handleCloseVictory = () => {
+    setShowVictory(false);
   };
 
   return (
@@ -170,6 +185,30 @@ export const SimpleReplayViewer: React.FC<SimpleReplayViewerProps> = ({ game, on
           fullscreen={true}
         />
       </div>
+
+      {/* Victory Modal */}
+      {showVictory && game.gameMode === '2player' && (
+        <VictoryModal
+          winner={game.result.winner}
+          player1Score={game.result.player1Score}
+          player2Score={game.result.player2Score}
+          sessionWins={{ player1: 0, player2: 0 }} // No session tracking in replay
+          generation={generation}
+          onPlayAgain={handlePlayAgain}
+          onMainMenu={onBack}
+          onViewBoard={handleCloseVictory}
+        />
+      )}
+
+      {showVictory && game.gameMode === 'training' && (
+        <SinglePlayerVictoryModal
+          finalScore={game.result.player1Score}
+          tokensPlaced={game.initialBoard.length}
+          generation={generation}
+          onPlayAgain={handlePlayAgain}
+          onMainMenu={onBack}
+        />
+      )}
     </div>
   );
 };
