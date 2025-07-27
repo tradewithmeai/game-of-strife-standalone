@@ -13,6 +13,7 @@ interface GameBoardProps {
   onCellClick?: (row: number, col: number) => void;
   isPlacementStage: boolean;
   selectedCell?: {row: number, col: number} | null;
+  fullscreen?: boolean;
 }
 
 // Memory bit flags
@@ -27,7 +28,8 @@ export const MEMORY_FLAGS = {
 export const GameBoard: React.FC<GameBoardProps> = ({ 
   board, 
   onCellClick,
-  isPlacementStage
+  isPlacementStage,
+  fullscreen = false
 }) => {
   const boardSize = board.length;
   const [isDragging, setIsDragging] = useState(false);
@@ -239,18 +241,38 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [onCellClick, isPlacementStage, dragStarted]);
 
+  const containerClass = fullscreen 
+    ? "fullscreen-game-container"
+    : "game-screen p-2 bg-retro-dark overflow-hidden";
+
+  const boardClass = fullscreen
+    ? "grid gap-0.5 border-2 border-retro-cyan fullscreen-game-board"
+    : "grid gap-0.5 mx-auto p-1 border-2 border-retro-purple";
+
+  const boardStyle = fullscreen
+    ? {
+        gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none'
+      }
+    : {
+        gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
+        width: 'min(95vw, min(95vh, 95vw))',
+        height: 'min(95vw, min(95vh, 95vw))',
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none'
+      };
+
   return (
-    <div className="game-screen p-4 bg-retro-dark">
+    <div className={containerClass}>
       <div 
         ref={boardRef}
-        className="grid gap-0.5 mx-auto p-2 border-2 border-retro-purple"
-        style={{ 
-          gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
-          width: 'min(90vw, calc(100vh - 200px))',
-          height: 'min(90vw, calc(100vh - 200px))',
-          touchAction: 'manipulation',
-          userSelect: 'none'
-        }}
+        className={boardClass}
+        style={boardStyle}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

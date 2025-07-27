@@ -253,6 +253,82 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
     }
   }, [gameStage, showVictory, calculateFinalScores, board, generation, winner, saveGame, gameSettings, gameState]);
 
+  // Use fullscreen mode during placement and simulation for mobile
+  const useFullscreen = gameStage === 'placement' || gameStage === 'simulation' || gameStage === 'paused';
+  
+  if (useFullscreen) {
+    return (
+      <>
+        {/* Fullscreen Game Board */}
+        <GameBoard
+          board={board}
+          onCellClick={handleCellClick}
+          isPlacementStage={gameStage === 'placement'}
+          selectedCell={null}
+          fullscreen={true}
+        />
+        
+        {/* Minimal UI Overlay */}
+        <div className="fullscreen-ui-overlay">
+          <div className="flex items-center space-x-2">
+            {/* Back button */}
+            <button
+              onClick={onBackToMenu}
+              className="retro-button text-xs px-2 py-1"
+            >
+              ← MENU
+            </button>
+            
+            {/* Current player indicator */}
+            {gameStage === 'placement' && (
+              <div className="bg-retro-purple border border-retro-cyan px-2 py-1 font-pixel text-xs">
+                P{currentPlayer + 1}: {currentPlayer === 0 ? player1Tokens : player2Tokens} LEFT
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {/* Generation counter */}
+            {(gameStage === 'simulation' || gameStage === 'paused') && (
+              <div className="bg-retro-purple border border-retro-cyan px-2 py-1 font-pixel text-xs">
+                GEN: {generation}
+              </div>
+            )}
+            
+            {/* Simulation controls */}
+            {(gameStage === 'simulation' || gameStage === 'paused') && (
+              <button
+                onClick={toggleSimulation}
+                className="retro-button text-xs px-2 py-1"
+              >
+                {isSimulating ? '⏸️' : '▶️'}
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Modals and overlays */}
+        {showPlayerTransition && (
+          <PlayerTransitionCountdown onTransitionComplete={handlePlayerTransitionComplete} />
+        )}
+        {showCountdown && (
+          <SimulationCountdown onCountdownComplete={handleCountdownComplete} />
+        )}
+        {showVictory && (
+          <VictoryModal
+            winner={winner}
+            player1Score={finalScores.player1}
+            player2Score={finalScores.player2}
+            sessionWins={sessionWins}
+            generation={generation}
+            onPlayAgain={handlePlayAgain}
+            onMainMenu={onBackToMenu}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-retro-dark text-retro-cyan flex flex-col">
       {/* Game HUD */}
@@ -307,6 +383,7 @@ export const GameLogic: React.FC<GameLogicProps> = ({ onBackToMenu, gameSettings
           onCellClick={handleCellClick}
           isPlacementStage={gameStage === 'placement'}
           selectedCell={null}
+          fullscreen={false}
         />
       </div>
 

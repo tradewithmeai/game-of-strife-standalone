@@ -52,3 +52,4 @@ ios/App/public/
 # Local development
 *.log
 *.cache
+.vercel
