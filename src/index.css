@@ -248,7 +248,7 @@
     animation: screen-shake 0.5s ease-in-out;
   }
 
-  /* Superpower visual effects */
+  /* Superpower visual effects - preserve player colors with overlay effects */
   .superpower-tank {
     border-width: 3px !important;
     border-color: #ff8800 !important;
@@ -256,31 +256,95 @@
       0 0 8px rgba(255, 136, 0, 0.8),
       inset 0 0 4px rgba(255, 136, 0, 0.3) !important;
     animation: tank-fortify 2s ease-in-out infinite;
+    position: relative;
+  }
+
+  .superpower-tank::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 136, 0, 0.2) 50%, transparent 70%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-spreader {
     animation: spreader-pulse 1.5s ease-in-out infinite;
     border-color: #ffff00 !important;
     box-shadow: 0 0 6px rgba(255, 255, 0, 0.8) !important;
+    position: relative;
+  }
+
+  .superpower-spreader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, transparent 40%, rgba(255, 255, 0, 0.15) 70%, transparent 100%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-survivor {
     border: 2px solid #ff0044 !important;
-    background: radial-gradient(circle, currentColor 40%, #ff0044 100%) !important;
     box-shadow: 0 0 4px rgba(255, 0, 68, 0.6) !important;
     animation: survivor-glow 2.5s ease-in-out infinite;
+    position: relative;
+  }
+
+  .superpower-survivor::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, transparent 20%, rgba(255, 0, 68, 0.2) 60%, transparent 100%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-ghost {
     opacity: 0.75 !important;
     animation: ghost-shimmer 2s ease-in-out infinite;
     border-color: #ff44aa !important;
+    position: relative;
+  }
+
+  .superpower-ghost::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 68, 170, 0.1) 50%, transparent 100%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-replicator {
     animation: replicator-spin 0.8s ease-in-out infinite;
     border-color: #8844ff !important;
     box-shadow: 0 0 8px rgba(136, 68, 255, 0.8) !important;
+    position: relative;
+  }
+
+  .superpower-replicator::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: conic-gradient(transparent 0deg, rgba(136, 68, 255, 0.15) 90deg, transparent 180deg, rgba(136, 68, 255, 0.15) 270deg, transparent 360deg);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-destroyer {
@@ -288,11 +352,42 @@
     border-style: dashed !important;
     border-color: #ff0044 !important;
     animation: destroyer-spike 1.2s ease-in-out infinite;
+    position: relative;
+  }
+
+  .superpower-destroyer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 25%, rgba(255, 0, 68, 0.2) 50%, transparent 75%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .superpower-hybrid {
     animation: hybrid-morph 3s ease-in-out infinite;
     border-width: 2px !important;
+    position: relative;
+  }
+
+  .superpower-hybrid::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+      rgba(255, 136, 0, 0.1) 0%, 
+      rgba(255, 255, 0, 0.1) 25%, 
+      rgba(255, 0, 68, 0.1) 50%, 
+      rgba(136, 68, 255, 0.1) 75%, 
+      rgba(255, 136, 0, 0.1) 100%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   /* Memory-based visual effects */
