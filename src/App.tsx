@@ -3,12 +3,10 @@ import { GameMenu } from './components/GameMenu';
 import { GameScreen } from './components/GameScreen';
 import { SinglePlayerScreen } from './components/SinglePlayerScreen';
 import { GameSettings, GameSettings as GameSettingsInterface } from './components/GameSettings';
-import { SettingsScreen } from './components/SettingsScreen';
-import { ScoreScreen } from './components/ScoreScreen';
 import ReplayModeScreen from './components/ReplayModeScreen';
 import './App.css';
 
-type Screen = 'menu' | 'game' | 'training' | 'gameSettings' | 'settings' | 'scores' | 'replay';
+type Screen = 'menu' | 'game' | 'training' | 'gameSettings' | 'replay';
 
 // Default game settings  
 const defaultGameSettings: GameSettingsInterface = {
@@ -28,8 +26,6 @@ function App() {
   const showGame = () => setCurrentScreen('game');
   const showTraining = () => setCurrentScreen('training');
   const showGameSettings = () => setCurrentScreen('gameSettings');
-  const showSettings = () => setCurrentScreen('settings');
-  const showScores = () => setCurrentScreen('scores');
   const showReplay = () => setCurrentScreen('replay');
 
   const handleSaveGameSettings = (newSettings: GameSettingsInterface) => {
@@ -53,8 +49,6 @@ function App() {
         <GameMenu
           onStartGame={showGame}
           onStartTraining={showTraining}
-          onShowSettings={showSettings}
-          onShowScores={showScores}
           onShowGameSettings={showGameSettings}
           onShowReplay={showReplay}
         />
@@ -84,13 +78,6 @@ function App() {
         />
       )}
       
-      {currentScreen === 'settings' && (
-        <SettingsScreen onBackToMenu={showMenu} />
-      )}
-      
-      {currentScreen === 'scores' && (
-        <ScoreScreen onBackToMenu={showMenu} />
-      )}
       
       {currentScreen === 'replay' && (
         <ReplayModeScreen onBack={showMenu} />

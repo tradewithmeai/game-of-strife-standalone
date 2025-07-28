@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Settings, Trophy, Volume2, VolumeX, Target, Database } from 'lucide-react';
+import { Play, Volume2, VolumeX, Target, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameMenuProps {
   onStartGame: () => void;
   onStartTraining: () => void;
-  onShowSettings: () => void;
-  onShowScores: () => void;
   onShowGameSettings: () => void;
   onShowReplay: () => void;
 }
@@ -14,8 +12,6 @@ interface GameMenuProps {
 export const GameMenu: React.FC<GameMenuProps> = ({ 
   onStartGame, 
   onStartTraining,
-  onShowSettings, 
-  onShowScores, 
   onShowGameSettings,
   onShowReplay
 }) => {
@@ -35,11 +31,6 @@ export const GameMenu: React.FC<GameMenuProps> = ({
     { icon: Database, label: 'REPLAY GAMES', action: onShowReplay, color: 'text-retro-pink' },
   ];
   
-  // Secondary options
-  const secondaryItems = [
-    { icon: Trophy, label: 'HIGH SCORES', action: onShowScores, color: 'text-retro-yellow' },
-    { icon: Settings, label: 'OPTIONS', action: onShowSettings, color: 'text-retro-purple' },
-  ];
 
   // Game type shortcuts (moved to bottom)
   const gameTypeItems = [
@@ -82,20 +73,6 @@ export const GameMenu: React.FC<GameMenuProps> = ({
         ))}
       </div>
 
-      {/* Secondary Options */}
-      <div className="space-y-3 w-full max-w-sm mb-8">
-        {secondaryItems.map((item, index) => (
-          <button
-            key={item.label}
-            onClick={item.action}
-            className={`retro-button w-full flex items-center justify-center gap-3 ${item.color} animate-slide-up`}
-            style={{ animationDelay: `${index * 0.1 + 0.2}s` }}
-          >
-            <item.icon size={16} />
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </div>
 
       {/* Sound Toggle */}
       <div className="mt-6 flex items-center gap-3">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Play, RotateCcw, Info, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Play, Info, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -54,14 +54,6 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
     return 'custom';
   };
 
-  const handleStandardConwayRules = () => {
-    setBirthRules([3]);
-    setSurvivalRules([2, 3]);
-    setEnabledSuperpowers([1, 2, 3, 4, 5, 6, 7]);
-    setSuperpowerPercentage(20);
-    setBoardSize(20);
-    setTokensPerPlayer(20);
-  };
 
   const handleStartGame = () => {
     const settings = {
@@ -170,13 +162,7 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
           GAME SETTINGS
         </h1>
         
-        <button
-          onClick={handleStandardConwayRules}
-          className="retro-button flex items-center gap-2 px-4 py-2 text-xs text-retro-green"
-        >
-          <RotateCcw size={12} />
-          STANDARD CONWAY
-        </button>
+        <div className="w-[120px]"></div> {/* Spacer to center title */}
       </div>
 
       {/* Settings Panel */}
@@ -192,9 +178,6 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
               GAME SETTINGS
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-pixel text-sm text-retro-cyan">
-                {tokensPerPlayer} tokens • {boardSize}×{boardSize} board • {superpowerPercentage}% powers
-              </span>
               {showBasicSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
             </div>
           </button>
@@ -277,9 +260,6 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
               GAME LOGIC
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-pixel text-sm text-retro-cyan">
-                Birth: {birthRules.join(',')} • Survive: {survivalRules.join(',')}
-              </span>
               {showGameLogic ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
             </div>
           </button>
@@ -350,12 +330,9 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
             className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
           >
             <span className="font-pixel text-lg text-retro-cyan text-glow">
-              SUPERPOWERS
+              SUPER CELLS
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-pixel text-sm text-retro-cyan">
-                {enabledSuperpowers.length}/7 types enabled • {getCurrentPreset().toUpperCase()} preset
-              </span>
               {showSuperpowerSettings ? <ChevronUp className="text-retro-cyan" /> : <ChevronDown className="text-retro-cyan" />}
             </div>
           </button>
