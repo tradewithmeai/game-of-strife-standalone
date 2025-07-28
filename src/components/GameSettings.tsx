@@ -147,9 +147,9 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col items-center justify-center p-4 crt-effect">
-      {/* Header */}
-      <div className="flex justify-between items-center w-full max-w-4xl mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col p-4 crt-effect overflow-y-auto">
+      {/* Header - Fixed at top */}
+      <div className="flex justify-between items-center w-full max-w-4xl mx-auto mb-8 flex-shrink-0">
         <button
           onClick={handleBackToMenu}
           className="retro-button flex items-center gap-2 px-4 py-2 text-xs"
@@ -165,8 +165,10 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
         <div className="w-[120px]"></div> {/* Spacer to center title */}
       </div>
 
-      {/* Settings Panel */}
-      <div className="bg-retro-purple border-2 border-retro-cyan p-6 rounded-lg w-full max-w-4xl space-y-6">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 flex flex-col items-center overflow-y-auto">
+        {/* Settings Panel */}
+        <div className="bg-retro-purple border-2 border-retro-cyan p-6 rounded-lg w-full max-w-4xl space-y-6">
         
         {/* Basic Game Settings Dropdown */}
         <div className="border border-retro-cyan rounded-lg">
@@ -445,13 +447,14 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
             <span>START TRAINING SESSION</span>
           </button>
         </div>
-      </div>
+        </div>
 
-      {/* Instructions */}
-      <div className="mt-6 text-center font-pixel text-xs text-retro-cyan max-w-4xl">
-        <div>CONFIGURE YOUR 2-PLAYER BATTLEFIELD PARAMETERS</div>
-        <div className="mt-2 text-retro-yellow">
-          USE "STANDARD CONWAY" TO RESET TO CLASSIC RULES | SELECT SUPERPOWERS FOR STRATEGIC GAMEPLAY
+        {/* Instructions */}
+        <div className="mt-6 text-center font-pixel text-xs text-retro-cyan max-w-4xl">
+          <div>CONFIGURE YOUR 2-PLAYER BATTLEFIELD PARAMETERS</div>
+          <div className="mt-2 text-retro-yellow">
+            USE "STANDARD CONWAY" TO RESET TO CLASSIC RULES | SELECT SUPERPOWERS FOR STRATEGIC GAMEPLAY
+          </div>
         </div>
       </div>
     </div>
