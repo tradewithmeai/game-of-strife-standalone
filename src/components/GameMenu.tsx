@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Volume2, VolumeX, Target, Database } from 'lucide-react';
+import { Play, Volume2, VolumeX, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface GameMenuProps {
@@ -32,11 +32,6 @@ export const GameMenu: React.FC<GameMenuProps> = ({
   ];
   
 
-  // Game type shortcuts (moved to bottom)
-  const gameTypeItems = [
-    { icon: Target, label: 'TRAINING MODE', action: onStartTraining, color: 'text-retro-cyan' },
-    { icon: Play, label: '2 PLAYER BATTLE', action: onStartGame, color: 'text-retro-orange' },
-  ];
 
   return (
     <div className="min-h-screen max-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col items-center p-4 crt-effect overflow-y-auto">
@@ -87,25 +82,6 @@ export const GameMenu: React.FC<GameMenuProps> = ({
         </span>
       </div>
 
-      {/* Game Type Shortcuts - At Bottom */}
-      <div className="mt-8 w-full max-w-sm">
-        <div className="text-center mb-4">
-          <span className="font-pixel text-xs text-retro-gray">QUICK START</span>
-        </div>
-        <div className="space-y-2">
-          {gameTypeItems.map((item, index) => (
-            <button
-              key={item.label}
-              onClick={item.action}
-              className={`retro-button w-full flex items-center justify-center gap-2 ${item.color} text-xs py-2 animate-slide-up opacity-80 hover:opacity-100`}
-              style={{ animationDelay: `${index * 0.1 + 0.6}s` }}
-            >
-              <item.icon size={14} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Version Info */}
       <div className="absolute bottom-4 left-4 text-retro-cyan opacity-60 text-xs font-pixel">
