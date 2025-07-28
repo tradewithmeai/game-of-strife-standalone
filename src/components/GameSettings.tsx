@@ -147,9 +147,9 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col p-4 crt-effect overflow-y-auto">
-      {/* Header - Fixed at top */}
-      <div className="flex justify-between items-center w-full max-w-4xl mx-auto mb-8 flex-shrink-0">
+    <div className="min-h-screen bg-gradient-to-b from-retro-dark via-retro-purple to-retro-blue flex flex-col items-center justify-center p-4 crt-effect">
+      {/* Header */}
+      <div className="flex justify-between items-center w-full max-w-4xl mb-8">
         <button
           onClick={handleBackToMenu}
           className="retro-button flex items-center gap-2 px-4 py-2 text-xs"
@@ -165,15 +165,17 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
         <div className="w-[120px]"></div> {/* Spacer to center title */}
       </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 flex flex-col items-center overflow-y-auto">
-        {/* Settings Panel */}
-        <div className="bg-retro-purple border-2 border-retro-cyan p-6 rounded-lg w-full max-w-4xl space-y-6">
+      {/* Settings Panel */}
+      <div className="bg-retro-purple border-2 border-retro-cyan p-6 rounded-lg w-full max-w-4xl space-y-6">
         
         {/* Basic Game Settings Dropdown */}
         <div className="border border-retro-cyan rounded-lg">
           <button
-            onClick={() => setShowBasicSettings(!showBasicSettings)}
+            onClick={() => {
+              setShowBasicSettings(!showBasicSettings);
+              setShowGameLogic(false);
+              setShowSuperpowerSettings(false);
+            }}
             className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
           >
             <span className="font-pixel text-lg text-retro-green text-glow">
@@ -255,7 +257,11 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
         {/* Game Logic Rules Dropdown */}
         <div className="border border-retro-orange rounded-lg">
           <button
-            onClick={() => setShowGameLogic(!showGameLogic)}
+            onClick={() => {
+              setShowGameLogic(!showGameLogic);
+              setShowBasicSettings(false);
+              setShowSuperpowerSettings(false);
+            }}
             className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
           >
             <span className="font-pixel text-lg text-retro-orange text-glow">
@@ -328,7 +334,11 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
         {/* Superpowers Dropdown */}
         <div className="border border-retro-cyan rounded-lg">
           <button
-            onClick={() => setShowSuperpowerSettings(!showSuperpowerSettings)}
+            onClick={() => {
+              setShowSuperpowerSettings(!showSuperpowerSettings);
+              setShowBasicSettings(false);
+              setShowGameLogic(false);
+            }}
             className="w-full flex items-center justify-between p-4 bg-retro-dark hover:bg-retro-purple transition-colors"
           >
             <span className="font-pixel text-lg text-retro-cyan text-glow">
@@ -447,14 +457,13 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
             <span>START TRAINING SESSION</span>
           </button>
         </div>
-        </div>
+      </div>
 
-        {/* Instructions */}
-        <div className="mt-6 text-center font-pixel text-xs text-retro-cyan max-w-4xl">
-          <div>CONFIGURE YOUR 2-PLAYER BATTLEFIELD PARAMETERS</div>
-          <div className="mt-2 text-retro-yellow">
-            USE "STANDARD CONWAY" TO RESET TO CLASSIC RULES | SELECT SUPERPOWERS FOR STRATEGIC GAMEPLAY
-          </div>
+      {/* Instructions */}
+      <div className="mt-6 text-center font-pixel text-xs text-retro-cyan max-w-4xl">
+        <div>CONFIGURE YOUR 2-PLAYER BATTLEFIELD PARAMETERS</div>
+        <div className="mt-2 text-retro-yellow">
+          USE "STANDARD CONWAY" TO RESET TO CLASSIC RULES | SELECT SUPERPOWERS FOR STRATEGIC GAMEPLAY
         </div>
       </div>
     </div>
