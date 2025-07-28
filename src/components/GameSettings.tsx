@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Play, Info, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Play, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -116,13 +116,6 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
     );
   };
 
-  const toggleSuperpower = (superpowerId: number) => {
-    setEnabledSuperpowers(prev => 
-      prev.includes(superpowerId)
-        ? prev.filter(id => id !== superpowerId)
-        : [...prev, superpowerId].sort()
-    );
-  };
 
   const setSuperpowerPreset = (preset: string) => {
     switch (preset) {
@@ -384,57 +377,13 @@ export const GameSettings: React.FC<GameSettingsProps> = ({ currentSettings, onS
                   </button>
                   <button
                     onClick={() => setSuperpowerPreset('none')}
-                    className={`retro-button px-3 py-1 text-xs text-retro-red ${getCurrentPreset() === 'none' ? 'bg-retro-red text-retro-dark border-retro-red' : ''}`}
+                    className={`retro-button px-3 py-1 text-xs ${getCurrentPreset() === 'none' ? 'bg-retro-cyan text-retro-dark border-retro-cyan' : ''}`}
                   >
                     NONE
                   </button>
-                  {getCurrentPreset() === 'custom' && (
-                    <span className="retro-button px-3 py-1 text-xs text-retro-yellow bg-retro-yellow/20 border-retro-yellow">
-                      CUSTOM
-                    </span>
-                  )}
                 </div>
               </div>
 
-              {/* Individual Superpower Selection */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Label className="font-pixel text-lg text-retro-cyan text-glow">
-                    INDIVIDUAL SUPERPOWERS
-                  </Label>
-                  <Info size={16} className="text-retro-yellow" />
-                </div>
-                
-                {/* Superpower Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  {SUPERPOWER_TYPES.map(superpower => (
-                    <div key={superpower.id} className="flex items-center space-x-3 p-3 bg-retro-dark border border-retro-cyan rounded">
-                      <Checkbox 
-                        checked={enabledSuperpowers.includes(superpower.id)}
-                        onCheckedChange={() => toggleSuperpower(superpower.id)}
-                        id={`superpower-${superpower.id}`}
-                      />
-                      <div className={`w-4 h-4 ${superpower.color} border border-retro-cyan`} />
-                      <div className="flex-1">
-                        <label 
-                          htmlFor={`superpower-${superpower.id}`}
-                          className="font-pixel text-xs text-retro-cyan cursor-pointer block"
-                        >
-                          {superpower.name}
-                        </label>
-                        <div className="font-pixel text-xs text-retro-yellow opacity-80">
-                          {superpower.description}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="font-pixel text-xs text-retro-yellow text-center">
-                  {enabledSuperpowers.length} OF 7 SUPERPOWERS ENABLED
-                  {enabledSuperpowers.length === 0 && " | ALL CELLS WILL BE NORMAL"}
-                </div>
-              </div>
             </div>
           )}
         </div>
